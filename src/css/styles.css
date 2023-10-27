@@ -14,7 +14,7 @@
     margin-bottom: 10px; /* Add some spacing between the input and button */
 }
 
-.start-button {
+.button {
     display: inline-block;
     padding: 10px;
     background-color: #0056b3;
@@ -23,17 +23,51 @@
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
-    min-width: 80px;
+    min-width: 90px;
+    margin-top: 20px;
 }
 
-.start-button:hover {
+.copy-button {
+    margin-left: 20px;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 1;
+    }
+    25% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+#copy-button.copied:before {
+    content: "✔️";
+    position: absolute;
+    margin-left: -20px;
+    animation: fadeInOut 3s linear;
+    color: white;
+    filter: invert(1); 
+}
+
+.button:hover {
     background-color: #003f80; /* Darker blue on hover */
 }
 
-.start-button:disabled {
+.button:disabled {
     background-color: #ccc; /* Change background color for disabled state */
     cursor: not-allowed; /* Change cursor style to indicate not allowed */
     color: #888; /* Change text color for disabled state */
+}
+
+.workers {
+    font-size: 14px;
+    font-style: italic;
 }
 
 /* Hover effect */
@@ -51,36 +85,17 @@
     font-weight: bold; /* Add bold styling for emphasis */
 }
 
-.result-area {
+.record-area {
     width: 100%; 
+    min-height: 250px;
+    padding: 10px; 
     padding-top: 10px; 
     padding-bottom: 10px;
     font-size: 16px;
-
-}
-
-.line-container {
-    width: 100%;
-    text-align: center;
-    border: 3px solid #ccc;
+    border: 2px solid #ccc;
     border-radius: 5px;
-    max-width: 800px;
-    margin: 0 auto;
-    height: 40px;
-}
-
-
-.result-line {
-    display: inline-block;
-    width: 95%; 
-    padding-top: 5px; 
-    padding-bottom: 10px;
-    font-size: 20px;
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    direction: rtl;
-    color: #CC0000;
+    white-space: pre-wrap;
+    line-height: 1.0;
 }
 
 .res-div {
@@ -96,55 +111,22 @@
     display: inline-block;
     width: 100%; 
     font-size: 20px;
-    color: #CC0000;
+    /* color: #CC0000; */
     text-align: left;
     text-indent: 20px;
-}
-
-.panel-header {
-    color: #003f80;
-    cursor: pointer;
-    font-size: 10px;
-    position: absolute; 
-    bottom: 2px; 
-    right: 10px; 
-    padding: 2px;
-    z-index: 2; 
+    line-height: 1.5;
 }
 
 .debug-container {
     position: relative; 
     width: 95%;
     max-width: 800px;
-    border: 2px solid #ccc;
-    border-radius: 5px;
+    /* border: 2px solid #ccc;
+    border-radius: 5px; */
     margin: 0 auto;
     padding-top: 10px; 
     padding-bottom: 10px; 
     margin-top: 10px;
-}
-
-.panel-content-div {
-    width: 80%; 
-    display: inline-block;
-    font-size: 14px;
-    text-align: left;
-    padding-left: 10px;
-}
-
-.panel-content {
-    color: #003f80;
-}
-
-.panel-content-error {
-    color: red;
-}
-
-.panel-content-div.active {
-    display: block;
-    max-height: 300px; 
-    overflow: hidden;
-    transition: max-height 0.3s ease; 
 }
 
 html, body {
@@ -168,7 +150,7 @@ footer {
     background-color: #f0f0f0;
     text-align: center;
     padding: 0px 0;
-    font-size: 12px; /* Adjust font size as needed */
+    font-size: 10px; /* Adjust font size as needed */
     color: #333; /* Adjust text color as needed */
 }
 
@@ -182,7 +164,8 @@ footer {
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
-    min-width: 80px;
+    min-width: 100px;
+    margin-top: 20px;
 }
 
 .stop-button canvas {

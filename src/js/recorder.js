@@ -14,32 +14,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const pageData = {}
   pageData.recording = false
-  pageData.debugVisible = true
-  pageData.resVisible = true
   pageData.startButton = document.getElementById('start-button')
   pageData.stopButton = document.getElementById('stop-button')
-  pageData.player = null
+  pageData.copyButton = document.getElementById('copy-button')
   pageData.source = null
   pageData.transcriberReady = false
 
   pageData.res = []
   pageData.partials = ''
-  pageData.resultArea = document.getElementById('result-area')
-  
+  pageData.recordArea = document.getElementById('record-area')
+
   const doUpper = true
   const doPrependSpace = true
   pageData.workers = 0
 
-  pageData.infoArea = document.getElementById('info-area')
-  pageData.infos = []
-  initPanel(pageData)
-
   const addMsg = (isError, msg) => {
     if (isError) {
-      pageData.debugVisible = true
+      console.error(msg)
+    } else {
+      console.info(msg)
     }
-    pageData.infos.push({ err: isError, msg })
-    updateInfo(pageData)
   }
 
   const cfg = new Config()
@@ -70,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function () {
     pageData.workers = data.num_workers_available
     console.log('onStatusEvent ' + pageData.workers)
     addMsg(false, `Workers available: ${pageData.workers}`)
-    updateInfo(pageData)
     updateComponents(pageData)
   }
   cfg.onReadyForSpeech = () => {
@@ -103,9 +96,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
   updateComponents(pageData)
 
+  pageData.copyButton.addEventListener('click', async function () {
+    console.log('start')
+    copyToClipboard(pageData)
+  })
+
+  pageData.recordArea.addEventListener('click', async function () {
+    if (pageData.recording) {
+      stop(pageData)
+    }
+  })
+
   pageData.startButton.addEventListener('click', async function () {
     console.log('start')
     try {
+      const cData = pageData.recordArea.innerText.trim()
+      pageData.res = []
+      if (cData) {
+        pageData.res = [cData]
+      }
       if (!pageData.audioContext) {
         pageData.audioContext = new (window.AudioContext || window.webkitAudioContext)()
       }
@@ -142,7 +151,6 @@ document.addEventListener('DOMContentLoaded', function () {
           }
           if (!pageData.transcriberReady && !initialized) {
             initialized = true
-            pageData.res = []
             pageData.partials = ''
             pageData.transcriber.init()
             updateRes(pageData)
@@ -163,19 +171,11 @@ document.addEventListener('DOMContentLoaded', function () {
   pageData.stopButton.addEventListener('click', function () {
     console.log('stop')
     stop(pageData)
-    // const bbf = bf.reduce((acc, ca) => { return acc.concat(Array.from(ca)) }, [])
-    // const data = encodeWAV(bbf, 44100)
-    // const blob = new Blob([data], { type: 'audio/wav' })
-    // const downloadLink = document.createElement('a')
-    // downloadLink.href = URL.createObjectURL(blob)
-    // downloadLink.download = 'audio.wav'
-    // downloadLink.textContent = 'Download WAV'
-    // document.body.appendChild(downloadLink)
   })
 })
 
 function draw(pageData) {
-  pageData.animationId = requestAnimationFrame(function() { draw(pageData); });
+  pageData.animationId = requestAnimationFrame(function () { draw(pageData); });
   pageData.analyser.getByteFrequencyData(pageData.dataArray);
   drawForm(pageData);
 }
@@ -198,170 +198,71 @@ function drawForm(pageData) {
   }
 }
 
-function stop (pageData) {
+function stop(pageData) {
   pageData.recording = false
   pageData.workletNode.disconnect()
   pageData.source.disconnect()
   pageData.transcriberReady = false
   pageData.transcriber.stop()
   cancelAnimationFrame(pageData.animationId);
+  if (pageData.partials) {
+    pageData.res.push(pageData.partials)
+    pageData.partials = ''
+    updateRes(pageData)
+  }
   updateComponents(pageData)
 };
 
-function initPanel (pageData) {
-  const panelHeader = document.getElementById('info-header')
-
-  panelHeader.addEventListener('click', () => {
-    pageData.debugVisible = !pageData.debugVisible
-    updateInfo(pageData)
-  })
-  const resHeader = document.getElementById('res-header')
-
-  resHeader.addEventListener('click', () => {
-    pageData.resVisible = !pageData.resVisible
-    updateRes(pageData)
-  })
-}
-
-function capitaliseFirstLetter (string) {
-  return string.charAt(0).toUpperCase() + string.slice(1)
-}
-
-function prettyfyHyp (text, doCapFirst, doPrependSpace) {
-  if (doCapFirst) {
-    text = capitaliseFirstLetter(text)
-  }
-  const tokens = text.split(' ')
-  text = ''
-  if (doPrependSpace) {
-    text = ' '
-  }
-  let doCapitalizeNext = false
-  tokens.forEach(function (token) {
-    if (text.trim().length > 0) {
-      text = text + ' '
-    }
-    if (doCapitalizeNext) {
-      text = text + capitaliseFirstLetter(token)
-    } else {
-      text = text + token
-    }
-    if (token === '.' || /\n$/.test(token)) {
-      doCapitalizeNext = true
-    } else {
-      doCapitalizeNext = false
-    }
-  })
-
+function prettyfyHyp(text, doCapFirst, doPrependSpace) {
   text = text.replace(/ ([,.!?:;])/g, '$1')
   text = text.replace(/ ?\n ?/g, '\n')
   text = text.replace(/_/g, ' ')
   return text
 }
 
-function updateRes (pageData) {
-  if (pageData.resVisible) {
-    pageData.resultArea.style.display = 'inline-block'
-  } else {
-    pageData.resultArea.style.display = 'none'
-  }
-  while (pageData.res.length > 3) {
-    pageData.res.shift()
-  }
-  let html = ''
+function updateRes(pageData) {
+  let text = ''
   pageData.res.forEach((s, index) => {
-    const div = `<div class="res-div">${s}</div>`
-    html += div
-  })
-  html += `<div class="partial-div">${pageData.partials}</div>`
-  pageData.resultArea.innerHTML = html
-}
-
-function makeString (pageData) {
-  let res = pageData.res.join(' ') + ' ' + pageData.partials
-  if (res.length > 150) {
-    res = res.slice(-150)
-  }
-  return res
-}
-
-function updateInfo (pageData) {
-  if (pageData.debugVisible) {
-    pageData.infoArea.style.display = 'inline-block'
-  } else {
-    pageData.infoArea.style.display = 'none'
-  }
-  while (pageData.infos.length > 7) {
-    pageData.infos.shift()
-  }
-  let html = ''
-  pageData.infos.forEach((s, index) => {
-    let cl = 'panel-content'
-    if (s.err) {
-      cl = 'panel-content-error'
+    let so = s
+    if (!(s.length > 1 && s.charAt(s.length - 1) == '\n')) {
+      so = `${s}\n`
     }
-    const div = `<div class="${cl}">${s.msg}</div>`
-    html += div
+    text += so
   })
-  pageData.infoArea.innerHTML = html
+  pageData.recordArea.innerText = text
+  if (pageData.partials !== "") {
+    let html = pageData.recordArea.innerHTML
+    html += `<div class="partial-div">${pageData.partials}</div>`
+    pageData.recordArea.innerHTML = html
+  }
 }
 
-function updateComponents (pageData) {
-  pageData.startButton.disabled = pageData.workers === 0
+function updateComponents(pageData) {
   if (pageData.recording) {
     pageData.startButton.style.display = 'none'
     pageData.stopButton.style.display = 'inline-block'
+    pageData.copyButton.disabled = true
+    pageData.recordArea.setAttribute("contenteditable", "false")
   } else {
+    pageData.recordArea.setAttribute("contenteditable", "true")
     pageData.stopButton.style.display = 'none'
+    pageData.startButton.disabled = pageData.workers === 0
     pageData.startButton.style.display = 'inline-block'
+    pageData.startButton.innerHTML = `Įrašyti <span class="workers">${pageData.workers}</span>`
   }
+  pageData.copyButton.disabled = pageData.recording || pageData.recordArea.innerText.length == 0
 }
 
-// function floatTo16BitPCM (output, offset, input) {
-//   for (let i = 0; i < input.length; i++, offset += 2) {
-//     const s = Math.max(-1, Math.min(1, input[i]))
-//     output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true)
-//   }
-// }
-
-// function writeString (view, offset, string) {
-//   for (let i = 0; i < string.length; i++) {
-//     view.setUint8(offset + i, string.charCodeAt(i))
-//   }
-// }
-
-// function encodeWAV (samples, sampleRate) {
-//   const buffer = new ArrayBuffer(44 + samples.length * 2)
-//   const view = new DataView(buffer)
-
-//   /* RIFF identifier */
-//   writeString(view, 0, 'RIFF')
-//   /* file length */
-//   view.setUint32(4, 32 + samples.length * 2, true)
-//   /* RIFF type */
-//   writeString(view, 8, 'WAVE')
-//   /* format chunk identifier */
-//   writeString(view, 12, 'fmt ')
-//   /* format chunk length */
-//   view.setUint32(16, 16, true)
-//   /* sample format (raw) */
-//   view.setUint16(20, 1, true)
-//   /* channel count */
-//   view.setUint16(22, 1, true)
-//   /* sample rate */
-//   view.setUint32(24, sampleRate, true)
-//   /* byte rate (sample rate * block align) */
-//   view.setUint32(28, sampleRate * 4, true)
-//   /* block align (channel count * bytes per sample) */
-//   view.setUint16(32, 4, true)
-//   /* bits per sample */
-//   view.setUint16(34, 16, true)
-//   /* data chunk identifier */
-//   writeString(view, 36, 'data')
-//   /* data chunk length */
-//   view.setUint32(40, samples.length * 2, true)
-
-//   floatTo16BitPCM(view, 44, samples)
-
-//   return view
-// }
+function copyToClipboard(pageData) {
+  const text = pageData.recordArea.innerText;
+  navigator.clipboard.writeText(text).then(function () {
+    pageData.copyButton.innerHTML = "Jau"
+    pageData.copyButton.classList.add("copied")
+    setTimeout(() => {
+      pageData.copyButton.innerHTML = "Kopijuoti";
+      pageData.copyButton.classList.remove("copied");
+    }, 3000);
+  }).catch(function (err) {
+    console.error('Failed to copy: ', err);
+  });
+}

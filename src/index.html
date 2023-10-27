@@ -3,36 +3,24 @@
 
 <head>
     <base href="<%= BASE_HREF %>" />
-    <title>Simple Stream Transcriber</title>
+    <title>Polis Transcribuoklis</title>
     <link rel="stylesheet" type="text/css" href="css/styles.css">
 </head>
 
 <body>
-    <h1 class="page-title">Recorder</h1>
-    <div class="container">
-        <button id="start-button" class="start-button">Go</button>
-        <button id="stop-button" class="stop-button" style="display: none;" >
-            <canvas id="waveform"></canvas>
-            <span>OK, stop</span>
-        </button>
-        <video id="video" class="video-js vjs-default-skin stream-input" preload="none" crossorigin="true" controls
-            width="640" height="50" controls style="display: none;"></video>
-
-    </div>
+    <!-- <h1 class="page-title">Dokumentas</h1> -->
     <div class="debug-container" id="transcriber" kaldi_url="<%= KALDI_URL %>">
-        <div class="panel-header" id="res-header">
-            <div>Results</div>
-        </div>
-        <div id="result-area" class="result-area">
-        </div>
-        <canvas id="waveform" class="waveform-canvas"></canvas>
-    </div>
-
-    <div class="debug-container">
-        <div class="panel-header" id="info-header">
-            <div>Debug info</div>
-        </div>
-        <div class="panel-content-div" id="info-area">
+        <span>Aprašymas</span>
+        <div id="record-area" class="record-area editable" contenteditable="true"></div>
+        <div class="container">
+            <button id="start-button" class="button">Įrašyti</button>
+            <button id="stop-button" class="button stop-button" style="display: none;" >
+                <canvas id="waveform"></canvas>
+                <span>Stop</span>
+            </button>
+            <button id="copy-button" class="button copy-button" >
+                <span>Kopijuoti</span>
+            </button>
         </div>
     </div>
 
