@@ -215,13 +215,22 @@ function stop(pageData) {
   pageData.source.disconnect()
   pageData.transcriberReady = false
   pageData.transcriber.stop()
-  cancelAnimationFrame(pageData.animationId);
+  cancelAnimationFrame(pageData.animationId)
+  stopStream(pageData)
+
   if (pageData.partials) {
     pageData.res.push(pageData.partials)
     pageData.partials = ''
     updateRes(pageData)
   }
   updateComponents(pageData)
+};
+
+function stopStream(pageData) {
+  if (pageData.stream) {
+    pageData.stream.getTracks().forEach(track => track.stop());
+    pageData.stream = null
+  }
 };
 
 function prettyfyHyp(text, doCapFirst, doPrependSpace) {
