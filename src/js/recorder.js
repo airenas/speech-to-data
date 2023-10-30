@@ -120,7 +120,18 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       if (!pageData.stream) {
-        pageData.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const constraints = {
+          audio: {
+            channelCount: 1, 
+            sampleRate: 16000,
+            sampleSize: 16,
+            echoCancellation: true,
+            autoGainControl: true,
+            noiseSuppression: true
+          },
+          video: false,
+        };
+        pageData.stream = await navigator.mediaDevices.getUserMedia(constraints);
       }
 
       pageData.source = pageData.audioContext.createMediaStreamSource(pageData.stream);
