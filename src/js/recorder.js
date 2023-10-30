@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   pageData.res = []
   pageData.partials = ''
+  pageData.skip = 0
   pageData.recordArea = document.getElementById('record-area')
 
   const doUpper = true
@@ -112,8 +113,10 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       const cData = pageData.recordArea.innerText.trim()
       pageData.res = []
+      pageData.skip = []
       if (cData) {
         pageData.res = [cData]
+        pageData.skip = 1
       }
       if (!pageData.audioContext) {
         pageData.audioContext = new (window.AudioContext || window.webkitAudioContext)()
@@ -122,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!pageData.stream) {
         const constraints = {
           audio: {
-            channelCount: 1, 
+            channelCount: 1,
             sampleRate: 16000,
             sampleSize: 16,
             echoCancellation: true,
@@ -240,21 +243,55 @@ function prettyfyHyp(text, doCapFirst, doPrependSpace) {
   return text
 }
 
-function updateRes(pageData) {
+function getText(pageData) {
   let text = ''
   pageData.res.forEach((s, index) => {
+    if (index < pageData.skip) {
+      return
+    }
     let so = s
     if (!(s.length > 1 && s.charAt(s.length - 1) == '\n')) {
-      so = `${s}\n`
+      so = `${s} `
     }
     text += so
   })
-  pageData.recordArea.innerText = text
   if (pageData.partials !== "") {
-    let html = pageData.recordArea.innerHTML
-    html += `<div class="partial-div">${pageData.partials}</div>`
-    pageData.recordArea.innerHTML = html
+    text += pageData.partials
   }
+  return text
+}
+
+function getOldText(pageData) {
+  if (pageData.skip == 1) {
+    return pageData.res[0] + "\n"
+  }
+  return ''
+}
+
+function updateRes(pageData) {
+  let text = getText(pageData)
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "https://sinteze-test.intelektika.lt/punctuation/punctuation", true)
+  xhr.setRequestHeader("Content-Type", "application/json")
+  xhr.onload = function () {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      const res = JSON.parse(xhr.responseText)
+      pageData.recordArea.innerText = getOldText(pageData) + res.punctuatedText
+    } else {
+      console.error('Request failed with status ' + xhr.status)
+      console.error('Body: ' + xhr.responseText)
+    }
+  };
+
+  xhr.onerror = function (err) {
+    console.error(`Request failed ${err}. Set unpunctuated text`)
+    pageData.recordArea.innerText = getOldText(pageData) + text
+  };
+
+  const data = {Text: text}
+  const jsonData = JSON.stringify(data)
+  xhr.send(jsonData);
 }
 
 function updateComponents(pageData) {
