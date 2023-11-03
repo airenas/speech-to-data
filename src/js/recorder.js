@@ -1,3 +1,4 @@
+import PCM from './pcm-to-wav'
 import AudioResampler from './resampler'
 import { Config, RTTranscriber } from './transcriber'
 
@@ -114,6 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const cData = pageData.recordArea.innerText.trim()
       pageData.res = []
       pageData.skip = []
+      pageData.audio = []
       if (cData) {
         pageData.res = [cData]
         pageData.skip = 1
@@ -151,6 +153,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       pageData.source.connect(pageData.workletNode)
       const resampler = new AudioResampler(pageData.audioContext.sampleRate, cfg.sampleRate)
+      pageData.sampleRate = cfg.sampleRate
       console.log(`sampleRate: ${pageData.audioContext.sampleRate}, targetRate: ${cfg.sampleRate}`);
       let initialized = false
 
@@ -161,6 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
           // console.log(`Received audio data: ${buffer}`)
           if (buffer.length > 0 && pageData.transcriberReady) {
             const pcmData = resampler.downsampleAndConvertToPCM(buffer)
+            pageData.audio.push(pcmData);
             pageData.transcriber.sendAudio(pcmData)
           }
           if (!pageData.transcriberReady && !initialized) {
@@ -227,6 +231,7 @@ function stop(pageData) {
     updateRes(pageData)
   }
   updateComponents(pageData)
+  prepareAudio(pageData)
 };
 
 function stopStream(pageData) {
@@ -235,6 +240,23 @@ function stopStream(pageData) {
     pageData.stream = null
   }
 };
+
+function prepareAudio(pageData) {
+  if (pageData.audio) {
+    const allPcmData = pageData.audio.reduce((accumulator, current) => {
+      return new Float32Array([...accumulator, ...current]);
+    }, new Float32Array());
+    const wav = new PCM(pageData.sampleRate).encodeWAV(allPcmData)
+    const wavBlob = new Blob([wav], { type: 'audio/wav' });
+    assignBlobToAudio(wavBlob)
+  }
+};
+
+function assignBlobToAudio(blob) {
+  const audioElement = document.getElementById('recordedAudio');
+  const blobUrl = URL.createObjectURL(blob);
+  audioElement.src = blobUrl;
+}
 
 function prettyfyHyp(text, doCapFirst, doPrependSpace) {
   text = text.replace(/ ([,.!?:;])/g, '$1')
@@ -289,7 +311,7 @@ function updateRes(pageData) {
     pageData.recordArea.innerText = getOldText(pageData) + text
   };
 
-  const data = {Text: text}
+  const data = { Text: text }
   const jsonData = JSON.stringify(data)
   xhr.send(jsonData);
 }
