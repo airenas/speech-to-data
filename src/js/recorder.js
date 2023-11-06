@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', function () {
   pageData.res = []
   pageData.partials = ''
   pageData.skip = 0
-  pageData.recordArea = document.getElementById('record-area')
+  pageData.recordAreaContainer = document.getElementById('record-area-container')
+  pageData.recordArea = createOrReturnDiv(pageData, pageData.recordArea)
 
   const doUpper = true
   const doPrependSpace = true
@@ -103,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
     copyToClipboard(pageData)
   })
 
-  pageData.recordArea.addEventListener('click', async function () {
+  pageData.recordAreaContainer.addEventListener('click', async function () {
     if (pageData.recording) {
       stop(pageData)
     }
@@ -112,14 +113,10 @@ document.addEventListener('DOMContentLoaded', function () {
   pageData.startButton.addEventListener('click', async function () {
     console.log('start')
     try {
-      const cData = pageData.recordArea.innerText.trim()
+      pageData.recordArea = createOrReturnDiv(pageData, pageData.recordArea)
       pageData.res = []
-      pageData.skip = []
+      pageData.skip = 0
       pageData.audio = []
-      if (cData) {
-        pageData.res = [cData]
-        pageData.skip = 1
-      }
       if (!pageData.audioContext) {
         pageData.audioContext = new (window.AudioContext || window.webkitAudioContext)()
       }
@@ -192,6 +189,26 @@ document.addEventListener('DOMContentLoaded', function () {
   })
 })
 
+function createOrReturnDiv(pageData, recordArea) {
+  if (recordArea && recordArea.innerText.length === 0 && recordArea.audio === null) {
+    return recordArea
+  }
+  const newDiv = document.createElement('div')
+  newDiv.classList.add('record-area')
+  newDiv.classList.add('editable')
+  newDiv.audio = null
+  pageData.recordAreaContainer.appendChild(newDiv)
+  newDiv.addEventListener('focus', function (event) {
+    console.log('on focus')
+    if (newDiv.audio) {
+      assignBlobToAudio(newDiv.audio)
+    } else {
+      assignBlobToAudio(null)
+    }
+  });
+  return newDiv
+}
+
 function draw(pageData) {
   pageData.animationId = requestAnimationFrame(function () { draw(pageData); });
   pageData.analyser.getByteFrequencyData(pageData.dataArray);
@@ -248,14 +265,17 @@ function prepareAudio(pageData) {
     }, new Float32Array());
     const wav = new PCM(pageData.sampleRate).encodeWAV(allPcmData)
     const wavBlob = new Blob([wav], { type: 'audio/wav' });
-    assignBlobToAudio(wavBlob)
+    const blobUrl = URL.createObjectURL(wavBlob);
+    pageData.recordArea.audio = blobUrl
+    assignBlobToAudio(pageData.recordArea.audio)
   }
 };
 
 function assignBlobToAudio(blob) {
   const audioElement = document.getElementById('recordedAudio');
-  const blobUrl = URL.createObjectURL(blob);
-  audioElement.src = blobUrl;
+  if (audioElement.src !== blob) {
+    audioElement.src = blob;
+  }
 }
 
 function prettyfyHyp(text, doCapFirst, doPrependSpace) {
@@ -321,19 +341,56 @@ function updateComponents(pageData) {
     pageData.startButton.style.display = 'none'
     pageData.stopButton.style.display = 'inline-block'
     pageData.copyButton.disabled = true
-    pageData.recordArea.setAttribute("contenteditable", "false")
+    runOnChilds(pageData, (div) => div.setAttribute("contenteditable", "false"))
   } else {
-    pageData.recordArea.setAttribute("contenteditable", "true")
+    runOnChilds(pageData, (div) => div.setAttribute("contenteditable", "true"))
     pageData.stopButton.style.display = 'none'
     pageData.startButton.disabled = pageData.workers === 0
     pageData.startButton.style.display = 'inline-block'
     pageData.startButton.innerHTML = `Įrašyti <span class="workers">${pageData.workers}</span>`
   }
-  pageData.copyButton.disabled = pageData.recording || pageData.recordArea.innerText.length == 0
+  pageData.copyButton.disabled = pageData.recording || hasText(pageData)
+}
+
+function hasText(pageData) {
+  const children = pageData.recordAreaContainer.children;
+
+  for (var i = 0; i < children.length; i++) {
+    const child = children[i];
+    const text = child.innerText;
+    if (text.length > 0) {
+      return false
+    }
+  }
+  return true
+}
+
+function getAllText(pageData) {
+  const children = pageData.recordAreaContainer.children;
+  console.log(`children ${children.length}`)
+  let text = ""
+  for (var i = 0; i < children.length; i++) {
+    const child = children[i];
+    const tmpText = child.innerText;
+    if (text.length > 0) {
+      text += "\n"
+    }
+    text += tmpText
+    console.log(`text ${text}`)
+  }
+  return text
+}
+
+function runOnChilds(pageData, fRun) {
+  const children = pageData.recordAreaContainer.children;
+  for (var i = 0; i < children.length; i++) {
+    const child = children[i];
+    fRun(child)
+  }
 }
 
 function copyToClipboard(pageData) {
-  const text = pageData.recordArea.innerText;
+  const text = getAllText(pageData);
   navigator.clipboard.writeText(text).then(function () {
     pageData.copyButton.innerHTML = "Jau"
     pageData.copyButton.classList.add("copied")

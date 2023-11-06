@@ -10,18 +10,23 @@
 <body>
     <!-- <h1 class="page-title">Dokumentas</h1> -->
     <div class="debug-container" id="transcriber" kaldi_url="<%= KALDI_URL %>">
-        <audio id="recordedAudio" controls>
-            Your browser does not support the audio element.
-        </audio>
+        <div>
+            <audio id="recordedAudio" controls>
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+
         <span>Aprašymas</span>
-        <div id="record-area" class="record-area editable" contenteditable="true"></div>
+        <div id="record-area-container" class="record-area-container">
+            <!-- <div class="record-area editable" contenteditable="true"></div> -->
+        </div>
         <div class="container">
             <button id="start-button" class="button">Įrašyti</button>
-            <button id="stop-button" class="button stop-button" style="display: none;" >
+            <button id="stop-button" class="button stop-button" style="display: none;">
                 <canvas id="waveform"></canvas>
                 <span>Stop</span>
             </button>
-            <button id="copy-button" class="button copy-button" >
+            <button id="copy-button" class="button copy-button">
                 <span>Kopijuoti</span>
             </button>
         </div>
