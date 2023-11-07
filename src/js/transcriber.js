@@ -55,6 +55,11 @@ export class RTTranscriber {
     this.socketSend(pcmData)
   }
 
+  stopAudio () {
+    console.log('stopAudio')
+    this.socketSend('EOS')
+  }
+
   init () {
     this.ws = this.createWebSocket()
   }

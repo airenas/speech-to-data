@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
   pageData.copyButton = document.getElementById('copy-button')
   pageData.source = null
   pageData.transcriberReady = false
+  pageData.transcriberWorking = false
 
   pageData.res = []
   pageData.partials = ''
@@ -45,17 +46,21 @@ document.addEventListener('DOMContentLoaded', function () {
   cfg.sampleRate = 16000
   cfg.onPartialResults = (data) => {
     console.log('onPartialResults ' + data)
-    const hypText = prettyfyHyp(data[0].transcript, doUpper, doPrependSpace)
-    console.log(hypText)
-    pageData.partials = hypText
+    if (data) {
+      const hypText = prettyfyHyp(data[0].transcript, doUpper, doPrependSpace)
+      console.log(hypText)
+      pageData.partials = hypText
+    }
     updateRes(pageData)
   }
   cfg.onResults = (data) => {
     console.log('onResults ' + data)
-    const hypText = prettyfyHyp(data[0].transcript, doUpper, doPrependSpace)
-    console.log(hypText)
-    pageData.res.push(hypText)
-    pageData.partials = ''
+    if (data) {
+      const hypText = prettyfyHyp(data[0].transcript, doUpper, doPrependSpace)
+      console.log(hypText)
+      pageData.res.push(hypText)
+      pageData.partials = ''
+    }
     updateRes(pageData)
   }
   cfg.onEvent = (e, data) => {
@@ -71,20 +76,24 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   cfg.onReadyForSpeech = () => {
     pageData.transcriberReady = true
+    pageData.transcriberWorking = true
     addMsg(false, 'Ready for speech')
   }
   cfg.onEndOfSpeech = () => {
     pageData.transcriberReady = false
+    pageData.transcriberWorking = false
     addMsg(false, 'Stop speech')
     stop(pageData)
   }
   cfg.onEndOfSession = () => {
     pageData.transcriberReady = false
-    addMsg(false, 'Stop speech')
+    pageData.transcriberWorking = false
+    addMsg(false, 'Stop speech session')
     stop(pageData)
   }
   cfg.onError = (et, data) => {
     pageData.transcriberReady = false
+    pageData.transcriberWorking = false
     addMsg(true, `Error ${et}`)
     stop(pageData)
   }
@@ -237,16 +246,18 @@ function stop(pageData) {
   pageData.recording = false
   pageData.workletNode.disconnect()
   pageData.source.disconnect()
-  pageData.transcriberReady = false
-  pageData.transcriber.stop()
-  cancelAnimationFrame(pageData.animationId)
   stopStream(pageData)
-
-  if (pageData.partials) {
-    pageData.res.push(pageData.partials)
-    pageData.partials = ''
-    updateRes(pageData)
+  cancelAnimationFrame(pageData.animationId)
+  if (pageData.transcriberReady) {
+    pageData.transcriberReady = false
+    pageData.transcriber.stopAudio()
   }
+
+  // if (pageData.partials) {
+  //   pageData.res.push(pageData.partials)
+  //   pageData.partials = ''
+  //   updateRes(pageData)
+  // }
   updateComponents(pageData)
   prepareAudio(pageData)
 };
@@ -340,16 +351,20 @@ function updateComponents(pageData) {
   if (pageData.recording) {
     pageData.startButton.style.display = 'none'
     pageData.stopButton.style.display = 'inline-block'
-    pageData.copyButton.disabled = true
-    runOnChilds(pageData, (div) => div.setAttribute("contenteditable", "false"))
+    
   } else {
-    runOnChilds(pageData, (div) => div.setAttribute("contenteditable", "true"))
     pageData.stopButton.style.display = 'none'
-    pageData.startButton.disabled = pageData.workers === 0
+    pageData.startButton.disabled = pageData.workers === 0 || pageData.transcriberWorking
     pageData.startButton.style.display = 'inline-block'
     pageData.startButton.innerHTML = `Įrašyti <span class="workers">${pageData.workers}</span>`
   }
-  pageData.copyButton.disabled = pageData.recording || hasText(pageData)
+  if (pageData.transcriberWorking) {
+    runOnChilds(pageData, (div) => div.setAttribute("contenteditable", "false"))
+  } else {
+    runOnChilds(pageData, (div) => div.setAttribute("contenteditable", "true"))
+  }
+
+  pageData.copyButton.disabled = pageData.recording || pageData.transcriberWorking || !hasText(pageData)
 }
 
 function hasText(pageData) {
@@ -359,10 +374,10 @@ function hasText(pageData) {
     const child = children[i];
     const text = child.innerText;
     if (text.length > 0) {
-      return false
+      return true
     }
   }
-  return true
+  return false
 }
 
 function getAllText(pageData) {
