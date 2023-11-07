@@ -324,22 +324,34 @@ function getOldText(pageData) {
 function updateRes(pageData) {
   let text = getText(pageData)
 
+  const setResult = (t) => pageData.recordArea.innerText = getOldText(pageData) + t
+  if (text.length > 0) {
+    punctuate(text, setResult)
+  } else {
+    setResult(text)
+  }
+}
+
+function punctuate(text, update) {
+  const startTime = performance.now(); 
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "https://sinteze-test.intelektika.lt/punctuation/punctuation", true)
   xhr.setRequestHeader("Content-Type", "application/json")
   xhr.onload = function () {
     if (xhr.status >= 200 && xhr.status < 300) {
       const res = JSON.parse(xhr.responseText)
-      pageData.recordArea.innerText = getOldText(pageData) + res.punctuatedText
+      update(res.punctuatedText)
     } else {
       console.error('Request failed with status ' + xhr.status)
       console.error('Body: ' + xhr.responseText)
     }
+    const timeElapsed = performance.now() - startTime; 
+    console.log(`Punctuation time ${timeElapsed} ms`);
   };
 
   xhr.onerror = function (err) {
     console.error(`Request failed ${err}. Set unpunctuated text`)
-    pageData.recordArea.innerText = getOldText(pageData) + text
+    update(text)
   };
 
   const data = { Text: text }
