@@ -95,6 +95,7 @@
     border-radius: 5px;
     white-space: pre-wrap;
     line-height: 1.0;
+    box-sizing: border-box;
 }
 
 .record-area-container {
