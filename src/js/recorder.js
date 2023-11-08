@@ -1,4 +1,5 @@
 import PCM from './pcm-to-wav'
+import Clip from './clipboard'
 import AudioResampler from './resampler'
 import { Config, RTTranscriber } from './transcriber'
 
@@ -333,7 +334,7 @@ function updateRes(pageData) {
 }
 
 function punctuate(text, update) {
-  const startTime = performance.now(); 
+  const startTime = performance.now();
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "https://sinteze-test.intelektika.lt/punctuation/punctuation", true)
   xhr.setRequestHeader("Content-Type", "application/json")
@@ -345,7 +346,7 @@ function punctuate(text, update) {
       console.error('Request failed with status ' + xhr.status)
       console.error('Body: ' + xhr.responseText)
     }
-    const timeElapsed = performance.now() - startTime; 
+    const timeElapsed = performance.now() - startTime;
     console.log(`Punctuation time ${timeElapsed} ms`);
   };
 
@@ -363,7 +364,7 @@ function updateComponents(pageData) {
   if (pageData.recording) {
     pageData.startButton.style.display = 'none'
     pageData.stopButton.style.display = 'inline-block'
-    
+
   } else {
     pageData.stopButton.style.display = 'none'
     pageData.startButton.disabled = pageData.workers === 0 || pageData.transcriberWorking
@@ -392,22 +393,6 @@ function hasText(pageData) {
   return false
 }
 
-function getAllText(pageData) {
-  const children = pageData.recordAreaContainer.children;
-  console.log(`children ${children.length}`)
-  let text = ""
-  for (var i = 0; i < children.length; i++) {
-    const child = children[i];
-    const tmpText = child.innerText;
-    if (text.length > 0) {
-      text += "\n"
-    }
-    text += tmpText
-    console.log(`text ${text}`)
-  }
-  return text
-}
-
 function runOnChilds(pageData, fRun) {
   const children = pageData.recordAreaContainer.children;
   for (var i = 0; i < children.length; i++) {
@@ -417,15 +402,12 @@ function runOnChilds(pageData, fRun) {
 }
 
 function copyToClipboard(pageData) {
-  const text = getAllText(pageData);
-  navigator.clipboard.writeText(text).then(function () {
+  new Clip().copy(pageData.recordAreaContainer, () => {
     pageData.copyButton.innerHTML = "Jau"
     pageData.copyButton.classList.add("copied")
     setTimeout(() => {
       pageData.copyButton.innerHTML = "Kopijuoti";
       pageData.copyButton.classList.remove("copied");
     }, 3000);
-  }).catch(function (err) {
-    console.error('Failed to copy: ', err);
-  });
+  })
 }
