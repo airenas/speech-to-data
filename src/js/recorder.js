@@ -1,5 +1,5 @@
-import PCM from './pcm-to-wav'
 import Clip from './clipboard'
+import PCM from './pcm-to-wav'
 import AudioResampler from './resampler'
 import { Config, RTTranscriber } from './transcriber'
 
@@ -19,9 +19,12 @@ document.addEventListener('DOMContentLoaded', function () {
   pageData.startButton = document.getElementById('start-button')
   pageData.stopButton = document.getElementById('stop-button')
   pageData.copyButton = document.getElementById('copy-button')
+  pageData.clearButton = document.getElementById('clear-button')
+  pageData.source = null
   pageData.source = null
   pageData.transcriberReady = false
   pageData.transcriberWorking = false
+  pageData.clearTimeout = null
 
   pageData.res = []
   pageData.partials = ''
@@ -110,8 +113,13 @@ document.addEventListener('DOMContentLoaded', function () {
   updateComponents(pageData)
 
   pageData.copyButton.addEventListener('click', async function () {
-    console.log('start')
+    console.log('copy')
     copyToClipboard(pageData)
+  })
+
+  pageData.clearButton.addEventListener('click', async function () {
+    console.log('clear')
+    clear(pageData)
   })
 
   pageData.recordAreaContainer.addEventListener('click', async function () {
@@ -378,6 +386,7 @@ function updateComponents(pageData) {
   }
 
   pageData.copyButton.disabled = pageData.recording || pageData.transcriberWorking || !hasText(pageData)
+  pageData.clearButton.disabled = pageData.recording || pageData.transcriberWorking || !hasText(pageData)
 }
 
 function hasText(pageData) {
@@ -410,4 +419,28 @@ function copyToClipboard(pageData) {
       pageData.copyButton.classList.remove("copied");
     }, 3000);
   })
+}
+
+function resetClearButton(pageData) {
+  clearTimeout(pageData.clearTimeout)
+  pageData.clearTimeout = null
+  pageData.clearButton.classList.remove("warn");
+  pageData.clearButton.innerHTML = 'Išvalyti'
+}
+
+function clear(pageData) {
+  if (pageData.clearTimeout === null) {
+    pageData.clearButton.classList.add("warn")
+    pageData.clearButton.innerHTML = 'Oi, ne!'
+    pageData.clearTimeout = setTimeout(() => {
+      while (pageData.recordAreaContainer.childElementCount > 0) {
+        pageData.recordAreaContainer.removeChild(pageData.recordAreaContainer.lastElementChild);
+      }
+      // pageData.recordAreaContainer.firstElementChild.innerText = ''
+      pageData.recordArea = createOrReturnDiv(pageData, pageData.recordArea)
+      resetClearButton(pageData)
+    }, 3000);
+  } else {
+    resetClearButton(pageData)
+  }
 }

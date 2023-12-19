@@ -27,6 +27,17 @@
     margin-top: 20px;
 }
 
+
+.warn {
+    background-color: #ffd700;
+    color: #fff;
+}
+
+.button.warn:hover {
+    background-color: #ffd700; /* Darker blue on hover */
+}
+
+
 .copy-button {
     margin-left: 20px;
 }
@@ -192,3 +203,8 @@ footer {
     position: relative;
     z-index: 1;
 }  
+
+.left-container {
+    float: left;
+    margin-right: 10px;
+}
