@@ -40,8 +40,7 @@ export default class Clip {
   //     });
   // }
 
-  copy(div, onWrote) {
-    const text = div.innerText
+  copy(text, onWrote) {
     navigator.clipboard.writeText(text).then(onWrote)
       .catch(function (err) {
         console.error('Failed to copy: ', err);

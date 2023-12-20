@@ -40,4 +40,8 @@ export default class Line {
     markChecked() {
         this.checkbox.checked = true
     }
+
+    isChecked() {
+        return this.checkbox.checked
+    }
 }

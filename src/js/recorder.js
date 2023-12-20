@@ -385,7 +385,7 @@ function updateComponents(pageData) {
 }
 
 function copyToClipboard(pageData) {
-  new Clip().copy(pageData.recordAreaContainer.div, () => {
+  new Clip().copy(pageData.recordAreaContainer.getSelectedText(), () => {
     pageData.copyButton.innerHTML = "Jau"
     pageData.copyButton.classList.add("copied")
     setTimeout(() => {

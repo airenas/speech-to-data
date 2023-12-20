@@ -42,4 +42,19 @@ export default class Lines {
             this.lines[i].markChecked();
         }
     }
+
+    getSelectedText() {
+        let res = ''
+        const children = this.lines
+        for (var i = 0; i < this.lines.length; i++) {
+            const line = this.lines[i];
+            if (line.isChecked()) {
+                if (res.length > 0) {
+                    res += "\n"
+                }
+                res += line.text();
+            }
+        }
+        return res
+    }
 }
