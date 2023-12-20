@@ -110,8 +110,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   pageData.transcriber = new RTTranscriber(cfg)
 
-  pageData.canvas = document.getElementById('waveform');
-  pageData.canvasCtx = pageData.canvas.getContext('2d');
+  pageData.canvas = document.getElementById('waveform')
+  pageData.canvasCtx = pageData.canvas.getContext('2d')
 
   updateComponents(pageData)
 
@@ -151,18 +151,18 @@ document.addEventListener('DOMContentLoaded', function () {
             autoGainControl: true,
             noiseSuppression: true
           },
-          video: false,
-        };
-        pageData.stream = await navigator.mediaDevices.getUserMedia(constraints);
+          video: false
+        }
+        pageData.stream = await navigator.mediaDevices.getUserMedia(constraints)
       }
 
-      pageData.source = pageData.audioContext.createMediaStreamSource(pageData.stream);
+      pageData.source = pageData.audioContext.createMediaStreamSource(pageData.stream)
 
-      pageData.analyser = pageData.audioContext.createAnalyser();
-      pageData.analyser.fftSize = 512;
-      const bufferLength = pageData.analyser.frequencyBinCount;
-      pageData.dataArray = new Uint8Array(bufferLength);
-      pageData.source.connect(pageData.analyser);
+      pageData.analyser = pageData.audioContext.createAnalyser()
+      pageData.analyser.fftSize = 512
+      const bufferLength = pageData.analyser.frequencyBinCount
+      pageData.dataArray = new Uint8Array(bufferLength)
+      pageData.source.connect(pageData.analyser)
 
       const scriptPath = new URL('audio-processor.js', import.meta.url)
       await pageData.audioContext.audioWorklet.addModule(scriptPath.href)
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
       pageData.source.connect(pageData.workletNode)
       const resampler = new AudioResampler(pageData.audioContext.sampleRate, cfg.sampleRate)
       pageData.sampleRate = cfg.sampleRate
-      console.log(`sampleRate: ${pageData.audioContext.sampleRate}, targetRate: ${cfg.sampleRate}`);
+      console.log(`sampleRate: ${pageData.audioContext.sampleRate}, targetRate: ${cfg.sampleRate}`)
       let initialized = false
 
       pageData.workletNode.port.onmessage = (event) => {
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
           // console.log(`Received audio data: ${buffer}`)
           if (buffer.length > 0 && pageData.transcriberReady) {
             const pcmData = resampler.downsampleAndConvertToPCM(buffer)
-            pageData.audio.push(pcmData);
+            pageData.audio.push(pcmData)
             pageData.transcriber.sendAudio(pcmData)
           }
           if (!pageData.transcriberReady && !initialized) {
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
       draw(pageData)
     } catch (error) {
       console.error(error)
-      addMsg(true, `Can't start recording`)
+      addMsg(true, 'Can\'t start recording')
       stop(pageData)
     }
   })
@@ -209,12 +209,12 @@ document.addEventListener('DOMContentLoaded', function () {
   })
 })
 
-function createOrReturnDiv(pageData, recordArea) {
+function createOrReturnDiv (pageData, recordArea) {
   if (recordArea && recordArea.text().length === 0 && recordArea.audio === null) {
     return recordArea
   }
 
-  const line = new Line();
+  const line = new Line()
   pageData.recordAreaContainer.add(line)
   line.txtDiv.addEventListener('focus', function (event) {
     console.log('on focus')
@@ -223,35 +223,35 @@ function createOrReturnDiv(pageData, recordArea) {
     } else {
       assignBlobToAudio(null)
     }
-  });
+  })
   return line
 }
 
-function draw(pageData) {
-  pageData.animationId = requestAnimationFrame(function () { draw(pageData); });
-  pageData.analyser.getByteFrequencyData(pageData.dataArray);
-  drawForm(pageData);
+function draw (pageData) {
+  pageData.animationId = requestAnimationFrame(function () { draw(pageData) })
+  pageData.analyser.getByteFrequencyData(pageData.dataArray)
+  drawForm(pageData)
 }
 
-function drawForm(pageData) {
-  pageData.canvasCtx.clearRect(0, 0, pageData.canvas.width, pageData.canvas.height);
+function drawForm (pageData) {
+  pageData.canvasCtx.clearRect(0, 0, pageData.canvas.width, pageData.canvas.height)
 
-  const barWidth = (pageData.canvas.width / pageData.dataArray.length) * 2;
-  let barHeight;
-  let x = 0;
+  const barWidth = (pageData.canvas.width / pageData.dataArray.length) * 2
+  let barHeight
+  let x = 0
 
-  pageData.canvasCtx.fillStyle = 'white';
+  pageData.canvasCtx.fillStyle = 'white'
   for (let i = 0; i < pageData.dataArray.length; i++) {
-    barHeight = pageData.dataArray[i];
+    barHeight = pageData.dataArray[i]
 
-    //pageData.canvasCtx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
-    pageData.canvasCtx.fillRect(x, pageData.canvas.height - barHeight / 2, barWidth, barHeight / 2);
+    // pageData.canvasCtx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
+    pageData.canvasCtx.fillRect(x, pageData.canvas.height - barHeight / 2, barWidth, barHeight / 2)
 
-    x += barWidth + 1;
+    x += barWidth + 1
   }
 }
 
-function stop(pageData) {
+function stop (pageData) {
   pageData.recording = false
   pageData.workletNode.disconnect()
   pageData.source.disconnect()
@@ -267,67 +267,67 @@ function stop(pageData) {
   pageData.recordArea.markChecked()
 };
 
-function stopStream(pageData) {
+function stopStream (pageData) {
   if (pageData.stream) {
-    pageData.stream.getTracks().forEach(track => track.stop());
+    pageData.stream.getTracks().forEach(track => track.stop())
     pageData.stream = null
   }
 };
 
-function prepareAudio(pageData) {
+function prepareAudio (pageData) {
   if (pageData.audio) {
     const allPcmData = pageData.audio.reduce((accumulator, current) => {
-      return new Float32Array([...accumulator, ...current]);
-    }, new Float32Array());
+      return new Float32Array([...accumulator, ...current])
+    }, new Float32Array())
     const wav = new PCM(pageData.sampleRate).encodeWAV(allPcmData)
-    const wavBlob = new Blob([wav], { type: 'audio/wav' });
-    const blobUrl = URL.createObjectURL(wavBlob);
+    const wavBlob = new Blob([wav], { type: 'audio/wav' })
+    const blobUrl = URL.createObjectURL(wavBlob)
     pageData.recordArea.audio = blobUrl
     assignBlobToAudio(pageData.recordArea.audio)
   }
 };
 
-function assignBlobToAudio(blob) {
-  const audioElement = document.getElementById('recordedAudio');
+function assignBlobToAudio (blob) {
+  const audioElement = document.getElementById('recordedAudio')
   if (audioElement.src !== blob) {
-    audioElement.src = blob;
+    audioElement.src = blob
   }
 }
 
-function prettyfyHyp(text, doCapFirst, doPrependSpace) {
+function prettyfyHyp (text, doCapFirst, doPrependSpace) {
   text = text.replace(/ ([,.!?:;])/g, '$1')
   text = text.replace(/ ?\n ?/g, '\n')
   text = text.replace(/_/g, ' ')
   return text
 }
 
-function getText(pageData) {
+function getText (pageData) {
   let text = ''
   pageData.res.forEach((s, index) => {
     if (index < pageData.skip) {
       return
     }
     let so = s
-    if (!(s.length > 1 && s.charAt(s.length - 1) == '\n')) {
+    if (!(s.length > 1 && s.charAt(s.length - 1) === '\n')) {
       so = `${s} `
     }
     text += so
   })
-  if (pageData.partials !== "") {
+  if (pageData.partials !== '') {
     text += pageData.partials
   }
   return text
 }
 
-function getOldText(pageData) {
-  if (pageData.skip == 1) {
-    return pageData.res[0] + "\n"
+function getOldText (pageData) {
+  if (pageData.skip === 1) {
+    return pageData.res[0] + '\n'
   }
   return ''
 }
 
-function updateRes(pageData) {
-  let text = getText(pageData)
+function updateRes (pageData) {
+  const text = getText(pageData)
 
   const setResult = (t) => pageData.recordArea.setText(getOldText(pageData) + t)
   if (text.length > 0) {
@@ -337,11 +337,11 @@ function updateRes(pageData) {
   }
 }
 
-function punctuate(text, update) {
-  const startTime = performance.now();
-  const xhr = new XMLHttpRequest();
-  xhr.open("POST", "https://sinteze-test.intelektika.lt/punctuation/punctuation", true)
-  xhr.setRequestHeader("Content-Type", "application/json")
+function punctuate (text, update) {
+  const startTime = performance.now()
+  const xhr = new XMLHttpRequest()
+  xhr.open('POST', 'https://sinteze-test.intelektika.lt/punctuation/punctuation', true)
+  xhr.setRequestHeader('Content-Type', 'application/json')
   xhr.onload = function () {
     if (xhr.status >= 200 && xhr.status < 300) {
       const res = JSON.parse(xhr.responseText)
@@ -350,25 +350,24 @@ function punctuate(text, update) {
       console.error('Request failed with status ' + xhr.status)
       console.error('Body: ' + xhr.responseText)
     }
-    const timeElapsed = performance.now() - startTime;
-    console.log(`Punctuation time ${timeElapsed} ms`);
-  };
+    const timeElapsed = performance.now() - startTime
+    console.log(`Punctuation time ${timeElapsed} ms`)
+  }
 
   xhr.onerror = function (err) {
     console.error(`Request failed ${err}. Set unpunctuated text`)
     update(text)
-  };
+  }
 
   const data = { Text: text }
   const jsonData = JSON.stringify(data)
-  xhr.send(jsonData);
+  xhr.send(jsonData)
 }
 
-function updateComponents(pageData) {
+function updateComponents (pageData) {
   if (pageData.recording) {
     pageData.startButton.style.display = 'none'
     pageData.stopButton.style.display = 'inline-block'
-
   } else {
     pageData.stopButton.style.display = 'none'
     pageData.startButton.disabled = pageData.workers === 0 || pageData.transcriberWorking
@@ -384,27 +383,27 @@ function updateComponents(pageData) {
   pageData.clearButton.disabled = pageData.recording || pageData.transcriberWorking || !pageData.recordAreaContainer.hasText()
 }
 
-function copyToClipboard(pageData) {
+function copyToClipboard (pageData) {
   new Clip().copy(pageData.recordAreaContainer.getSelectedText(), () => {
-    pageData.copyButton.innerHTML = "Jau"
-    pageData.copyButton.classList.add("copied")
+    pageData.copyButton.innerHTML = 'Jau'
+    pageData.copyButton.classList.add('copied')
     setTimeout(() => {
-      pageData.copyButton.innerHTML = "Kopijuoti";
-      pageData.copyButton.classList.remove("copied");
-    }, 3000);
+      pageData.copyButton.innerHTML = 'Kopijuoti'
+      pageData.copyButton.classList.remove('copied')
+    }, 3000)
   })
 }
 
-function resetClearButton(pageData) {
+function resetClearButton (pageData) {
   clearTimeout(pageData.clearTimeout)
   pageData.clearTimeout = null
-  pageData.clearButton.classList.remove("warn");
+  pageData.clearButton.classList.remove('warn')
   pageData.clearButton.innerHTML = 'Išvalyti'
 }
 
-function clear(pageData) {
+function clear (pageData) {
   if (pageData.clearTimeout === null) {
-    pageData.clearButton.classList.add("warn")
+    pageData.clearButton.classList.add('warn')
     pageData.clearButton.innerHTML = 'Oi, ne!'
     pageData.clearTimeout = setTimeout(() => {
       pageData.recordAreaContainer.clear()
@@ -412,7 +411,7 @@ function clear(pageData) {
       pageData.recordArea = createOrReturnDiv(pageData, pageData.recordArea)
       resetClearButton(pageData)
       updateComponents(pageData)
-    }, 3000);
+    }, 3000)
   } else {
     resetClearButton(pageData)
   }

@@ -1,28 +1,28 @@
 export default class PCM {
-  constructor(sampleRate) {
+  constructor (sampleRate) {
     this.sampleRate = sampleRate
   }
 
-  floatTo16BitPCM(output, offset, input) {
+  floatTo16BitPCM (output, offset, input) {
     for (let i = 0; i < input.length; i++, offset += 2) {
       const s = Math.max(-1, Math.min(1, input[i]))
       output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true)
     }
   }
 
-  writeData(output, offset, input) {
+  writeData (output, offset, input) {
     for (let i = 0; i < input.length; i++, offset += 2) {
       output.setInt16(offset, input[i], true)
     }
   }
 
-  writeString(view, offset, string) {
+  writeString (view, offset, string) {
     for (let i = 0; i < string.length; i++) {
       view.setUint8(offset + i, string.charCodeAt(i))
     }
   }
 
-  encodeWAV(samples) {
+  encodeWAV (samples) {
     const buffer = new ArrayBuffer(44 + samples.length * 2)
     const view = new DataView(buffer)
 
@@ -33,7 +33,7 @@ export default class PCM {
     /* RIFF type */
     this.writeString(view, 8, 'WAVE')
     /* format chunk identifier */
-    this. writeString(view, 12, 'fmt ')
+    this.writeString(view, 12, 'fmt ')
     /* format chunk length */
     view.setUint32(16, 16, true)
     /* sample format (raw) */

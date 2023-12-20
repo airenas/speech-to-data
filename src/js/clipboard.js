@@ -1,7 +1,4 @@
 export default class Clip {
-  constructor() {
-  }
-
   // extractDivText(div) {
   //   console.log(`int children len ${div.children.length}`)
   //   if (div.children.length === 0) {
@@ -40,10 +37,10 @@ export default class Clip {
   //     });
   // }
 
-  copy(text, onWrote) {
+  copy (text, onWrote) {
     navigator.clipboard.writeText(text).then(onWrote)
       .catch(function (err) {
-        console.error('Failed to copy: ', err);
-      });
+        console.error('Failed to copy: ', err)
+      })
   }
 }

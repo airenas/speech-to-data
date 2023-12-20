@@ -3,7 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const webpack = require('webpack')
 
-const localKaldiUrl = "wss://sinteze-test.intelektika.lt/client/ws"
+const localKaldiUrl = 'wss://sinteze-test.intelektika.lt/client/ws'
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production'
