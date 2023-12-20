@@ -2,6 +2,8 @@ import Clip from './clipboard'
 import PCM from './pcm-to-wav'
 import AudioResampler from './resampler'
 import { Config, RTTranscriber } from './transcriber'
+import Line from './gui/line'
+import Lines from './gui/lines'
 
 const version = process.env.BUILD_VERSION
 console.log(`Version: ${version}`)
@@ -29,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
   pageData.res = []
   pageData.partials = ''
   pageData.skip = 0
-  pageData.recordAreaContainer = document.getElementById('record-area-container')
+  pageData.recordAreaContainer = new Lines(document.getElementById('record-area-container'))
   pageData.recordArea = createOrReturnDiv(pageData, pageData.recordArea)
 
   const doUpper = true
@@ -122,12 +124,6 @@ document.addEventListener('DOMContentLoaded', function () {
     clear(pageData)
   })
 
-  pageData.recordAreaContainer.addEventListener('click', async function () {
-    if (pageData.recording) {
-      stop(pageData)
-    }
-  })
-
   pageData.startButton.addEventListener('click', async function () {
     console.log('start')
     try {
@@ -208,23 +204,21 @@ document.addEventListener('DOMContentLoaded', function () {
 })
 
 function createOrReturnDiv(pageData, recordArea) {
-  if (recordArea && recordArea.innerText.length === 0 && recordArea.audio === null) {
+  if (recordArea && recordArea.text().length === 0 && recordArea.audio === null) {
     return recordArea
   }
-  const newDiv = document.createElement('div')
-  newDiv.classList.add('record-area')
-  newDiv.classList.add('editable')
-  newDiv.audio = null
-  pageData.recordAreaContainer.appendChild(newDiv)
-  newDiv.addEventListener('focus', function (event) {
+
+  const line = new Line();
+  pageData.recordAreaContainer.add(line)
+  line.div.txt.addEventListener('focus', function (event) {
     console.log('on focus')
-    if (newDiv.audio) {
-      assignBlobToAudio(newDiv.audio)
+    if (line.audio) {
+      assignBlobToAudio(line.audio)
     } else {
       assignBlobToAudio(null)
     }
   });
-  return newDiv
+  return line
 }
 
 function draw(pageData) {
@@ -333,7 +327,7 @@ function getOldText(pageData) {
 function updateRes(pageData) {
   let text = getText(pageData)
 
-  const setResult = (t) => pageData.recordArea.innerText = getOldText(pageData) + t
+  const setResult = (t) => pageData.recordArea.setText(getOldText(pageData) + t)
   if (text.length > 0) {
     punctuate(text, setResult)
   } else {
@@ -380,38 +374,17 @@ function updateComponents(pageData) {
     pageData.startButton.innerHTML = `Įrašyti <span class="workers">${pageData.workers}</span>`
   }
   if (pageData.transcriberWorking) {
-    runOnChilds(pageData, (div) => div.setAttribute("contenteditable", "false"))
+    pageData.recordAreaContainer.editable(false)
   } else {
-    runOnChilds(pageData, (div) => div.setAttribute("contenteditable", "true"))
+    pageData.recordAreaContainer.editable(true)
   }
 
-  pageData.copyButton.disabled = pageData.recording || pageData.transcriberWorking || !hasText(pageData)
-  pageData.clearButton.disabled = pageData.recording || pageData.transcriberWorking || !hasText(pageData)
-}
-
-function hasText(pageData) {
-  const children = pageData.recordAreaContainer.children;
-
-  for (var i = 0; i < children.length; i++) {
-    const child = children[i];
-    const text = child.innerText;
-    if (text.length > 0) {
-      return true
-    }
-  }
-  return false
-}
-
-function runOnChilds(pageData, fRun) {
-  const children = pageData.recordAreaContainer.children;
-  for (var i = 0; i < children.length; i++) {
-    const child = children[i];
-    fRun(child)
-  }
+  pageData.copyButton.disabled = pageData.recording || pageData.transcriberWorking || !pageData.recordAreaContainer.hasText()
+  pageData.clearButton.disabled = pageData.recording || pageData.transcriberWorking || !pageData.recordAreaContainer.hasText()
 }
 
 function copyToClipboard(pageData) {
-  new Clip().copy(pageData.recordAreaContainer, () => {
+  new Clip().copy(pageData.recordAreaContainer.div, () => {
     pageData.copyButton.innerHTML = "Jau"
     pageData.copyButton.classList.add("copied")
     setTimeout(() => {
@@ -433,12 +406,11 @@ function clear(pageData) {
     pageData.clearButton.classList.add("warn")
     pageData.clearButton.innerHTML = 'Oi, ne!'
     pageData.clearTimeout = setTimeout(() => {
-      while (pageData.recordAreaContainer.childElementCount > 0) {
-        pageData.recordAreaContainer.removeChild(pageData.recordAreaContainer.lastElementChild);
-      }
-      // pageData.recordAreaContainer.firstElementChild.innerText = ''
+      pageData.recordAreaContainer.clear()
+      assignBlobToAudio(null)
       pageData.recordArea = createOrReturnDiv(pageData, pageData.recordArea)
       resetClearButton(pageData)
+      updateComponents(pageData)
     }, 3000);
   } else {
     resetClearButton(pageData)
