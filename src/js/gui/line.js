@@ -7,12 +7,12 @@ export default class Line {
         const txtDiv = document.createElement('div')
         txtDiv.classList.add('record-area')
         txtDiv.classList.add('editable')
-        this.div.txt = txtDiv
+        this.txtDiv = txtDiv
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.classList.add('record-checkbox');
-        this.div.checkbox = checkbox
+        this.checkbox = checkbox
         this.div.appendChild(txtDiv);
         this.div.appendChild(checkbox);
     }
@@ -26,14 +26,18 @@ export default class Line {
     }
 
     text() {
-        return this.div.txt.innerText
+        return this.txtDiv.innerText
     }
 
     setText(txt) {
-        this.div.txt.innerText = txt
+        this.txtDiv.innerText = txt
     }
 
     editable(value) {
-        this.div.txt.setAttribute("contenteditable", value)
+        this.txtDiv.setAttribute("contenteditable", value)
+    }
+
+    markChecked() {
+        this.checkbox.checked = true
     }
 }

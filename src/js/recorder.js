@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
   pageData.stopButton = document.getElementById('stop-button')
   pageData.copyButton = document.getElementById('copy-button')
   pageData.clearButton = document.getElementById('clear-button')
+  pageData.selectButton = document.getElementById('select-button')
   pageData.source = null
   pageData.source = null
   pageData.transcriberReady = false
@@ -124,6 +125,11 @@ document.addEventListener('DOMContentLoaded', function () {
     clear(pageData)
   })
 
+  pageData.selectButton.addEventListener('click', async function () {
+    console.log('select')
+    pageData.recordAreaContainer.selectAll()
+  })
+
   pageData.startButton.addEventListener('click', async function () {
     console.log('start')
     try {
@@ -210,7 +216,7 @@ function createOrReturnDiv(pageData, recordArea) {
 
   const line = new Line();
   pageData.recordAreaContainer.add(line)
-  line.div.txt.addEventListener('focus', function (event) {
+  line.txtDiv.addEventListener('focus', function (event) {
     console.log('on focus')
     if (line.audio) {
       assignBlobToAudio(line.audio)
@@ -256,13 +262,9 @@ function stop(pageData) {
     pageData.transcriber.stopAudio()
   }
 
-  // if (pageData.partials) {
-  //   pageData.res.push(pageData.partials)
-  //   pageData.partials = ''
-  //   updateRes(pageData)
-  // }
   updateComponents(pageData)
   prepareAudio(pageData)
+  pageData.recordArea.markChecked()
 };
 
 function stopStream(pageData) {
@@ -379,7 +381,6 @@ function updateComponents(pageData) {
     pageData.recordAreaContainer.editable(true)
   }
 
-  pageData.copyButton.disabled = pageData.recording || pageData.transcriberWorking || !pageData.recordAreaContainer.hasText()
   pageData.clearButton.disabled = pageData.recording || pageData.transcriberWorking || !pageData.recordAreaContainer.hasText()
 }
 

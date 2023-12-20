@@ -25,7 +25,7 @@ export default class Lines {
     editable(value) {
         const children = this.lines
         for (var i = 0; i < this.lines.length; i++) {
-            const child = this.lines[i].editable(value);
+            this.lines[i].editable(value);
         }
     }
 
@@ -33,6 +33,13 @@ export default class Lines {
         this.lines = []
         while (this.div.childElementCount > 0) {
             this.div.removeChild(this.div.lastElementChild);
+        }
+    }
+
+    selectAll() {
+        const children = this.lines
+        for (var i = 0; i < this.lines.length; i++) {
+            this.lines[i].markChecked();
         }
     }
 }

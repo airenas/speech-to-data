@@ -42,6 +42,10 @@
     margin-left: 20px;
 }
 
+.select-button {
+    margin-left: 20px;
+}
+
 @keyframes fadeInOut {
     0% {
         opacity: 1;
@@ -63,7 +67,7 @@
     margin-left: -20px;
     animation: fadeInOut 3s linear;
     color: white;
-    filter: invert(1); 
+    filter: invert(1);
 }
 
 .button:hover {
@@ -97,7 +101,7 @@
 }
 
 .record-area {
-    width: 100%; 
+    width: 100%;
     padding-top: 5px;
     margin-bottom: 5px;
     min-height: 20px;
@@ -110,7 +114,7 @@
 }
 
 .record-area-container {
-    width: 100%; 
+    width: 100%;
     min-height: 250px;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -119,7 +123,7 @@
 
 .res-div {
     display: inline-block;
-    width: 100%; 
+    width: 100%;
     font-size: 20px;
     color: #003f80;
     text-align: left;
@@ -128,7 +132,7 @@
 
 .partial-div {
     display: inline-block;
-    width: 100%; 
+    width: 100%;
     font-size: 20px;
     /* color: #CC0000; */
     text-align: left;
@@ -137,14 +141,14 @@
 }
 
 .debug-container {
-    position: relative; 
+    position: relative;
     width: 95%;
     max-width: 800px;
     /* border: 2px solid #ccc;
     border-radius: 5px; */
     margin: 0 auto;
-    padding-top: 10px; 
-    padding-bottom: 10px; 
+    padding-top: 10px;
+    padding-bottom: 10px;
     margin-top: 10px;
 }
 
@@ -171,8 +175,8 @@ footer {
     text-align: center;
     padding: 0px 0;
     font-size: 10px;
-    color: #333; 
-    width: 200px; 
+    color: #333;
+    width: 200px;
 }
 
 .stop-button {
@@ -197,16 +201,21 @@ footer {
     top: 5%;
     background-color: transparent;
     opacity: 0.9;
-}  
+}
 
 .stop-button span {
     position: relative;
     z-index: 1;
-}  
+}
 
 .left-container {
     float: left;
     margin-right: 10px;
+}
+
+.right-container {
+    float: right;
+    margin-left: 10px;
 }
 
 .record-checkbox {
