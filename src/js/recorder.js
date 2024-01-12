@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
   pageData.skip = 0
   pageData.recordAreaContainer = new Lines(document.getElementById('record-area-container'))
   pageData.recordArea = createOrReturnDiv(pageData, pageData.recordArea)
+  pageData.punctuationUrl = (divElement.getAttribute('punctuation_url') ?? '').trim().replace(/[/]*$/g, '')
 
   const doUpper = true
   const doPrependSpace = true
@@ -106,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   addMsg(false, `Kaldi URL: ${cfg.server}`)
+  addMsg(false, `Punctuation URL: ${pageData.punctuationUrl}`)
   addMsg(false, 'Waiting for server ready ...')
 
   pageData.transcriber = new RTTranscriber(cfg)
@@ -331,16 +333,16 @@ function updateRes (pageData) {
 
   const setResult = (t) => pageData.recordArea.setText(getOldText(pageData) + t)
   if (text.length > 0) {
-    punctuate(text, setResult)
+    punctuate(pageData, text, setResult)
   } else {
     setResult(text)
   }
 }
 
-function punctuate (text, update) {
+function punctuate (pageData, text, update) {
   const startTime = performance.now()
   const xhr = new XMLHttpRequest()
-  xhr.open('POST', 'https://sinteze-test.intelektika.lt/punctuation/punctuation', true)
+  xhr.open('POST', pageData.punctuationUrl, true)
   xhr.setRequestHeader('Content-Type', 'application/json')
   xhr.onload = function () {
     if (xhr.status >= 200 && xhr.status < 300) {

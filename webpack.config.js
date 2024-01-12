@@ -3,12 +3,14 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const webpack = require('webpack')
 
-const localKaldiUrl = 'wss://sinteze-test.intelektika.lt/client/ws'
+const localKaldiUrl = 'wss://worker1.mywire.org/client/ws'
+const localPunctuationUrl = 'https://worker1.mywire.org/punctuation/punctuation'
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production'
   const baseHref = isProduction ? 'BASE_HREF' : '/'
   const kaldiUrl = isProduction ? 'KALDI_URL' : localKaldiUrl
+  const punctuationUrl = isProduction ? 'PUNCTUATION_URL' : localPunctuationUrl
   return {
     mode: argv.mode,
     entry: './src/js/recorder.js', // Entry point of your application
@@ -23,7 +25,8 @@ module.exports = (env, argv) => {
         templateParameters: (compilation, assets, assetTags, options) => {
           return {
             BASE_HREF: baseHref,
-            KALDI_URL: kaldiUrl
+            KALDI_URL: kaldiUrl,
+            PUNCTUATION_URL: punctuationUrl
           }
         }
       }),
