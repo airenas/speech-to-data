@@ -1,9 +1,9 @@
 import Clip from './clipboard'
+import Line from './gui/line'
+import Lines from './gui/lines'
 import PCM from './pcm-to-wav'
 import AudioResampler from './resampler'
 import { Config, RTTranscriber } from './transcriber'
-import Line from './gui/line'
-import Lines from './gui/lines'
 
 const version = process.env.BUILD_VERSION
 console.log(`Version: ${version}`)
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function () {
       let initialized = false
 
       pageData.workletNode.port.onmessage = (event) => {
-        console.log('Received worklet event')
+        // console.log('Received worklet event')
         if (event.data.type === 'audioData') {
           const buffer = event.data.data
           // console.log(`Received audio data: ${buffer}`)
@@ -277,17 +277,33 @@ function stopStream (pageData) {
 };
 
 function prepareAudio (pageData) {
+  const startTime = performance.now()
   if (pageData.audio) {
-    const allPcmData = pageData.audio.reduce((accumulator, current) => {
-      return new Float32Array([...accumulator, ...current])
-    }, new Float32Array())
+    const allPcmData = concat(pageData.audio)
+    const timeElapsed = performance.now() - startTime
+    console.log(`prepareAudio3 time ${timeElapsed} ms`)
     const wav = new PCM(pageData.sampleRate).encodeWAV(allPcmData)
     const wavBlob = new Blob([wav], { type: 'audio/wav' })
     const blobUrl = URL.createObjectURL(wavBlob)
     pageData.recordArea.audio = blobUrl
     assignBlobToAudio(pageData.recordArea.audio)
+    pageData.audio = null
   }
 };
+
+function concat (arrays) {
+  const totalLength = arrays.reduce((acc, value) => acc + value.length, 0)
+  if (!arrays.length) {
+    return null
+  }
+  const result = new Float32Array(totalLength)
+  let length = 0
+  for (const array of arrays) {
+    result.set(array, length)
+    length += array.length
+  }
+  return result
+}
 
 function assignBlobToAudio (blob) {
   const audioElement = document.getElementById('recordedAudio')
@@ -353,7 +369,7 @@ function punctuate (pageData, text, update) {
       console.error('Body: ' + xhr.responseText)
     }
     const timeElapsed = performance.now() - startTime
-    console.log(`Punctuation time ${timeElapsed} ms`)
+    console.log(`Punctuation time ${timeElapsed} ms, len ${text.length}`)
   }
 
   xhr.onerror = function (err) {
