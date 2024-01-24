@@ -51,7 +51,7 @@ export class RTTranscriber {
   }
 
   sendAudio (pcmData) {
-    console.log('sendAudio ' + pcmData.length)
+    // console.log('sendAudio ' + pcmData.length)
     this.socketSend(pcmData)
   }
 
@@ -72,7 +72,7 @@ export class RTTranscriber {
     const self = this
 
     ws.onmessage = function (e) {
-      console.log('on message')
+      // console.log('on message')
       const data = e.data
       config.onEvent(MSG_WEB_SOCKET, data)
       if (data instanceof Object && !(data instanceof Blob)) {
