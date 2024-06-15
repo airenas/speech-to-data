@@ -1,0 +1,85 @@
+x-logging:
+  &default-logging
+  options:
+    max-size: '20m'
+    max-file: '3'
+  driver: json-file
+
+services:
+
+  manager:
+    image: airenas/docker-kaldi-gstreamer-server:${gstreamer_version}
+    container_name: manager
+    logging: *default-logging
+    restart: no
+    entrypoint: ["python", "/opt/kaldi-gstreamer-server/kaldigstserver/master_server.py", "--port=9090"]
+
+  worker:
+    image: airenas/docker-kaldi-gstreamer-server:${gstreamer_version}
+    # container_name: worker
+    logging: *default-logging
+    restart: unless-stopped
+    entrypoint: ["python", "/opt/kaldi-gstreamer-server/kaldigstserver/worker.py", "-c", "/opt/models/lt.yaml", "-u", "ws://manager:9090/worker/ws/speech"]
+    environment:
+     - GST_PLUGIN_PATH=/opt/gst-kaldi-nnet2-online/src/:/opt/kaldi/src/gst-plugin/
+     - PHONES2WORD_SERVER_URL=http://phones2word:3000/phones2word
+    volumes:
+     - ${MODEL_DIR}:/opt/models:ro  
+
+  wrapper:
+    image: airenas/rt-transcriber-wrapper:${wrapper_version}
+    container_name: rt-wrapper
+    logging: *default-logging
+    restart: no
+    ports:
+     - "8082:8000"
+    environment:
+     - STATUS_URL=ws://manager:9090/client/ws/status
+     - SPEECH_URL=ws://manager:9090/client/ws/speech  
+     - JOINER_URL=http://norm-num:3000/invnorm_num  
+    
+  tensorflow:
+    image: tensorflow/serving:1.15.0
+    environment:
+      MODEL_NAME: punctuation
+      MODEL_BASE_PATH: /models
+    volumes:  
+      - ${PUNCTUATION_DIR}/models:/models
+    restart: no
+    logging: *default-logging
+      
+  punctuation:
+    image: airenas/list-punctuation:0.3.1
+    restart: no
+    logging: *default-logging
+    volumes:
+      - ${PUNCTUATION_DIR}/3.0:/model
+    ports:
+     - "8083:8000"  
+    environment:
+      TF_URL: tensorflow:8500   
+
+  norm-num:
+    image: intelektikalt/invnorm-nums:${nnum_version}
+    container_name: norm-num
+    logging: *default-logging
+    restart: no
+    ports:
+     - "3003:3000" 
+
+  phones2word:
+    image: intelektikalt/asr-phoneme2word:0.0.1
+    container_name: phones2word
+    logging: *default-logging
+    restart: no
+
+  # polis-gui:
+  #   image: airenas/polis-gui:${polis_gui_version}
+  #   container_name: polis-gui
+  #   logging: *default-logging
+  #   restart: unless-stopped
+  #   environment:
+  #     - BASE_HREF=/polis/
+  #     - KALDI_URL=${KALDI_WS}
+  #     - PUNCTUATION_URL=${PUNCTUATION_URL}
+
