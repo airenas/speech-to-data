@@ -3,8 +3,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const webpack = require('webpack')
 
-const localKaldiUrl = 'wss://worker1.mywire.org/client/ws'
-const localPunctuationUrl = 'https://worker1.mywire.org/punctuation/punctuation'
+// const localKaldiUrl = 'wss://prn509.vdu.lt/client/ws'
+const localPunctuationUrl = 'https://prn509.vdu.lt/punctuation/punctuation'
+const localKaldiUrl = 'ws://localhost:8084/client/ws'
+// const localPunctuationUrl = 'http://localhost:8083/punctuation'
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production'

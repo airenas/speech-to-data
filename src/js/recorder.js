@@ -36,8 +36,6 @@ document.addEventListener('DOMContentLoaded', function () {
   pageData.recordArea = createOrReturnDiv(pageData, pageData.recordArea)
   pageData.punctuationUrl = (divElement.getAttribute('punctuation_url') ?? '').trim().replace(/[/]*$/g, '')
 
-  const doUpper = true
-  const doPrependSpace = true
   pageData.workers = 0
 
   const addMsg = (isError, msg) => {
@@ -55,18 +53,18 @@ document.addEventListener('DOMContentLoaded', function () {
   cfg.onPartialResults = (data) => {
     console.log('onPartialResults ' + data)
     if (data) {
-      const hypText = prettyfyHyp(data[0].transcript, doUpper, doPrependSpace)
-      console.log(hypText)
-      pageData.partials = hypText
+      const text = data[0].transcript
+      console.log(text)
+      pageData.partials = text
     }
     updateRes(pageData)
   }
   cfg.onResults = (data) => {
     console.log('onResults ' + data)
     if (data) {
-      const hypText = prettyfyHyp(data[0].transcript, doUpper, doPrependSpace)
-      console.log(hypText)
-      pageData.res.push(hypText)
+      const text = data[0].transcript
+      console.log(text)
+      pageData.res.push(text)
       pageData.partials = ''
     }
     updateRes(pageData)
@@ -312,13 +310,6 @@ function assignBlobToAudio (blob) {
   }
 }
 
-function prettyfyHyp (text, doCapFirst, doPrependSpace) {
-  text = text.replace(/ ([,.!?:;])/g, '$1')
-  text = text.replace(/ ?\n ?/g, '\n')
-  text = text.replace(/_/g, ' ')
-  return text
-}
-
 function getText (pageData) {
   let text = ''
   pageData.res.forEach((s, index) => {
@@ -346,40 +337,7 @@ function getOldText (pageData) {
 
 function updateRes (pageData) {
   const text = getText(pageData)
-
-  const setResult = (t) => pageData.recordArea.setText(getOldText(pageData) + t)
-  if (text.length > 0) {
-    punctuate(pageData, text, setResult)
-  } else {
-    setResult(text)
-  }
-}
-
-function punctuate (pageData, text, update) {
-  const startTime = performance.now()
-  const xhr = new XMLHttpRequest()
-  xhr.open('POST', pageData.punctuationUrl, true)
-  xhr.setRequestHeader('Content-Type', 'application/json')
-  xhr.onload = function () {
-    if (xhr.status >= 200 && xhr.status < 300) {
-      const res = JSON.parse(xhr.responseText)
-      update(res.punctuatedText)
-    } else {
-      console.error('Request failed with status ' + xhr.status)
-      console.error('Body: ' + xhr.responseText)
-    }
-    const timeElapsed = performance.now() - startTime
-    console.log(`Punctuation time ${timeElapsed} ms, len ${text.length}`)
-  }
-
-  xhr.onerror = function (err) {
-    console.error(`Request failed ${err}. Set unpunctuated text`)
-    update(text)
-  }
-
-  const data = { Text: text }
-  const jsonData = JSON.stringify(data)
-  xhr.send(jsonData)
+  pageData.recordArea.setText(getOldText(pageData) + text)
 }
 
 function updateComponents (pageData) {
