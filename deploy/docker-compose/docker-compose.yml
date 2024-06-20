@@ -35,8 +35,9 @@ services:
      - "8082:8000"
     environment:
      - STATUS_URL=ws://manager:9090/client/ws/status
-     - SPEECH_URL=ws://manager:9090/client/ws/speech  
-     - JOINER_URL=http://norm-num:3000/invnorm_num  
+     - SPEECH_URL=ws://manager:9090/client/ws/speech
+     - JOINER_URL=http://norm-num:3000/invnorm_num
+     - PUNCTUATOR_URL=http://punctuation:8000/punctuation
     
   tensorflow:
     image: tensorflow/serving:1.15.0
