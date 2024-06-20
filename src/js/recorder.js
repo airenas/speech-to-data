@@ -3,7 +3,7 @@ import Line from './gui/line'
 import Lines from './gui/lines'
 import PCM from './pcm-to-wav'
 import AudioResampler from './resampler'
-import { Config, RTTranscriber } from './transcriber'
+import { Config, RTTranscriber, SpeechSegment } from './transcriber'
 
 const version = process.env.BUILD_VERSION
 console.log(`Version: ${version}`)
@@ -51,22 +51,26 @@ document.addEventListener('DOMContentLoaded', function () {
   cfg.statusServer = kaldiUrl + '/status'
   cfg.sampleRate = 16000
   cfg.onPartialResults = (data) => {
-    console.log('onPartialResults ' + data)
-    if (data) {
-      const text = data[0].transcript
-      console.log(text)
+    console.log('onPartialResults')
+    const transcript = data.result.hypotheses
+    if (transcript) {
+      const text = transcript[0].transcript
+      // console.log(text)
       pageData.partials = text
     }
+    updateSegments(pageData, data['old-updates'])
     updateRes(pageData)
   }
   cfg.onResults = (data) => {
-    console.log('onResults ' + data)
-    if (data) {
-      const text = data[0].transcript
-      console.log(text)
-      pageData.res.push(text)
+    console.debug('onResults')
+    const transcript = data.result.hypotheses
+    if (transcript) {
+      const text = transcript[0].transcript
+      // console.log(text)
+      addSegment(pageData, text, data.segment)
       pageData.partials = ''
     }
+    updateSegments(pageData, data['old-updates'])
     updateRes(pageData)
   }
   cfg.onEvent = (e, data) => {
@@ -312,10 +316,11 @@ function assignBlobToAudio (blob) {
 
 function getText (pageData) {
   let text = ''
-  pageData.res.forEach((s, index) => {
+  pageData.res.forEach((segment, index) => {
     if (index < pageData.skip) {
       return
     }
+    const s = segment.transcript
     let so = s
     if (!(s.length > 1 && s.charAt(s.length - 1) === '\n')) {
       so = `${s} `
@@ -338,6 +343,32 @@ function getOldText (pageData) {
 function updateRes (pageData) {
   const text = getText(pageData)
   pageData.recordArea.setText(getOldText(pageData) + text)
+}
+
+function updateSegments (pageData, segments) {
+  if (segments !== null && segments !== undefined && segments.length > 0) {
+    // console.debug('old segments:', segments)
+    for (const segment of segments) {
+      let found = false
+      for (const s of pageData.res) {
+        if (s.segment === segment.segment) {
+          s.final = segment.final
+          s.transcript = segment.transcript
+          console.debug('updated segment:', s.segment)
+          found = true
+          break
+        }
+      }
+      if (!found) {
+        console.warn('missed segment:', segment.segment)
+      }
+    }
+  }
+}
+
+function addSegment (pageData, text, id) {
+  console.log('addSegment', id)
+  pageData.res.push(new SpeechSegment(id, text, true))
 }
 
 function updateComponents (pageData) {

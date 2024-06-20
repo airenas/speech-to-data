@@ -42,6 +42,14 @@ export class Config {
   }
 }
 
+export class SpeechSegment {
+  constructor (segment, transcript, final) {
+    this.segment = segment
+    this.transcript = transcript
+    this.final = final
+  }
+}
+
 export class RTTranscriber {
   constructor (cfg) {
     this.config = cfg || {}
@@ -82,11 +90,12 @@ export class RTTranscriber {
       } else {
         const res = JSON.parse(data)
         if (res.status === 0) {
+          // console.log('on message', res)
           if (res.result) {
             if (res.result.final) {
-              config.onResults(res.result.hypotheses)
+              config.onResults(res)
             } else {
-              config.onPartialResults(res.result.hypotheses)
+              config.onPartialResults(res)
             }
           }
         } else {
