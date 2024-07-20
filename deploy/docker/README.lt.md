@@ -61,5 +61,90 @@ Ar domenas sukonfigūruotas teisingai. Patikriname iš kitos mašinos:
 ```
 
 ## Diegimas
+1. Prisijunkite prie serverio su ssh
 
-...TODO
+1. Parsisiųskite diegimo skriptus (ši git repositorija):
+
+    `git clone https://github.com/airenas/speech-to-data.git`
+
+    `cd speech-to-data/deploy/docker`
+
+    Docker diegimo skriptai yra direktorijoje *speech-to-data/deploy/docker*.
+
+1. Pasirinkite diegimo versiją:
+
+    `git checkout <VERSIJA>`
+    
+    `<VERSIJA>` pateiks VDU
+
+1. Paruoškite konfigūracinį diegimo failą *Makefile.options*:
+
+    `cp Makefile.options.template Makefile.options`
+
+1. Sukonfigūruokite *Makefile.options*:
+
+    | Parametras | Priva-lomas | Paskirtis | Pvz |
+    |------------------|-----|-----------------------------------|------------------|
+    | *host* | + | Domenas, kuriuo bus pasiekiama roboto Web sąsaja | polis.policija.lt | 
+    | *letsencrypt_email* | + | El. paštas sertifikato suteikimui | admin@policija.lt |
+
+1. Prisijunkite prie docker repositorijos `intelektikalt`, kurioje yra kai kurie sistemo konteineriai:
+
+`docker login -u intelektikalt`
+
+Slaptažodį pateiks VDU
+
+2. Instaliuokite
+
+    `make install`
+
+    Skriptas parsiųs ir paleis reikalingus docker conteinerius.
+
+## Patikrinimas
+
+1. Patikrinkite ar visi servisai veikia su *docker compose*: `docker compose ps`. Visi servisai turi būti *Up* būsenoje.
+
+1. Atidarykite URL naršyklėje: *<host/polis/*. Turi atsidaryti realaus laiko transkripcijos puslapis.
+
+## Servisų sustabdymas/valdymas
+
+Servisai valdomi su *docker compose* komanda:
+
+```bash
+    ## Servisų sustabdymas
+    docker compose stop
+    ##Paleidimas
+    docker compose up -d
+```
+
+## Duomenų atnaujinimas
+
+1. Atnaujinus duomenis, bus pakeista ir ši repositorija su nuorodomis į naujus docker konteinerius. Patikrinkite, kad turite naujausius skriptus:
+
+    `git pull`
+
+1. Pasirinkite norimą versiją:
+
+    `git checkout <VERSIJA>`
+
+    Versija turi priskirtą *git* žymą. Galimas versijas galite sužinoti su komanda: `git tag`.
+
+1. Jei pasikeitė konfigūracija - atnaujinkite `Makefile.options`
+
+1. Atnaujinkite servisus - pašalinkite ir sudiekite iš naujo:
+
+```bash
+    docker compose down
+    make install
+```
+
+## Pašalinimas
+
+```bash
+    docker compose down
+```
+
+Parsiųstų duomenų pašalinimas
+```
+sudo make clean
+```

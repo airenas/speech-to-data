@@ -130,3 +130,6 @@ dist
 .pnp.*
 .vscode/settings.json
 data/
+deploy/docker/traefik/rules.toml
+deploy/docker/traefik/traefik.toml
+deploy/docker/Makefile.options
