@@ -16,7 +16,7 @@ status:
 	docker compose ps
 
 run: init
-	docker compose up -d 
+	docker compose up -d --scale worker=${worker_count}
 .PHONY: run	
 init: .env traefik/traefik.toml traefik/rules.toml ${data_dir}/.punctuation.extracted ${data_dir}/.asr.extracted
 .PHONY: init	
@@ -60,7 +60,7 @@ ${data_dir}/.asr.extracted: ${data_dir}/.asr.dwn | $(data_dir)/models
 	touch $@
 
 ${data_dir}/.asr.dwn: | ${data_dir}/.dwn
-	wget --no-check-certificate -O $(data_dir)/.dwn/asr-4.0.tar.gz $(dwn_url)/asr-4.0.tar.gz
+	wget --user user --password ${share_pass} --no-check-certificate -O $(data_dir)/.dwn/asr-4.0.tar.gz $(dwn_url)/asr-4.0.tar.gz
 	touch $@
 ########################################################################################################
 $(data_dir) $(data_dir)/.dwn $(data_dir)/models:

@@ -1,0 +1,11 @@
+### dynamic
+host=
+letsencrypt_email=
+share_pass=
+worker_count=
+
+### static
+polis_path=polis
+traefik_debug_level=INFO
+punctuation_dir=$(CURDIR)/data/models/punctuation
+asr_dir=$(CURDIR)/data/models/asr/v4

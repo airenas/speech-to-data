@@ -87,6 +87,8 @@ Ar domenas sukonfigūruotas teisingai. Patikriname iš kitos mašinos:
     |------------------|-----|-----------------------------------|------------------|
     | *host* | + | Domenas, kuriuo bus pasiekiama roboto Web sąsaja | polis.policija.lt | 
     | *letsencrypt_email* | + | El. paštas sertifikato suteikimui | admin@policija.lt |
+    | *worker_count* | + | Darbo vietų skaičius, priklausdo nuo RAM | 3 |
+    | *share_pass* | + | Modelių parsisiuntimo slaptažodis (pateiks VDU) | xxx123 |
 
 1. Prisijunkite prie docker repositorijos `intelektikalt`, kurioje yra kai kurie sistemo konteineriai:
 
@@ -114,7 +116,7 @@ Servisai valdomi su *docker compose* komanda:
     ## Servisų sustabdymas
     docker compose stop
     ##Paleidimas
-    docker compose up -d
+    make run
 ```
 
 ## Duomenų atnaujinimas
