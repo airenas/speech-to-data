@@ -1,5 +1,8 @@
 include Makefile.options
 ########################################################################################################
+data_dir?=./data
+dwn_url=https://prn509.vdu.lt/models/share
+########################################################################################################
 ## print usage information
 help:
 	@echo 'Usage:'
@@ -15,7 +18,7 @@ status:
 run: init
 	docker compose up -d 
 .PHONY: run	
-init: .env traefik/traefik.toml traefik/rules.toml 
+init: .env traefik/traefik.toml traefik/rules.toml ${data_dir}/.punctuation.extracted ${data_dir}/.asr.extracted
 .PHONY: init	
 
 clean:
@@ -44,4 +47,25 @@ traefik/traefik.toml: traefik/traefik.toml.in Makefile.options
 traefik/rules.toml: traefik/rules.toml.in Makefile.options
 	cat $< | envsubst > $@
 ########################################################################################################
+${data_dir}/.punctuation.extracted: ${data_dir}/.punctuation.dwn | $(data_dir)/models
+	tar xvzf $(data_dir)/.dwn/punctuation-3.0.tar.gz -C $(data_dir)/models/
+	touch $@
+
+${data_dir}/.punctuation.dwn: | ${data_dir}/.dwn
+	wget --user user --password ${share_pass} --no-check-certificate -O $(data_dir)/.dwn/punctuation-3.0.tar.gz $(dwn_url)/punctuation-3.0.tar.gz
+	touch $@
+########################################################################################################
+${data_dir}/.asr.extracted: ${data_dir}/.asr.dwn | $(data_dir)/models
+	tar xvzf $(data_dir)/.dwn/asr-4.0.tar.gz -C $(data_dir)/models/
+	touch $@
+
+${data_dir}/.asr.dwn: | ${data_dir}/.dwn
+	wget --no-check-certificate -O $(data_dir)/.dwn/asr-4.0.tar.gz $(dwn_url)/asr-4.0.tar.gz
+	touch $@
+########################################################################################################
+$(data_dir) $(data_dir)/.dwn $(data_dir)/models:
+	mkdir -p $@		
+########################################################################################################
 .EXPORT_ALL_VARIABLES:
+########################################################################################################
+

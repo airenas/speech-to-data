@@ -45,7 +45,7 @@ services:
     networks:
      - polis    
     volumes:
-     - ${MODEL_DIR}:/opt/models:ro  
+     - ${ASR_DIR}:/opt/models:ro  
 
   wrapper:
     image: airenas/rt-transcriber-wrapper:${wrapper_version}
