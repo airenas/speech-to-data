@@ -29,7 +29,7 @@ Linux OS 64-bit (papildomai žiūrėkite [reikalavimus Docker instaliacijai](htt
 | ---|-|-|
 | Docker | 27.0.3 | [Link](https://docs.docker.com/engine/install/)
 
-Papildomi įrankiai naudojami instaliuojant: [make](https://www.gnu.org/software/make/manual/make.html), [wget](https://www.gnu.org/software/wget/manual/wget.html), [tar](https://www.gnu.org/software/tar/manual/).
+Papildomi įrankiai naudojami instaliuojant: [make](https://www.gnu.org/software/make/manual/make.html), [wget](https://www.gnu.org/software/wget/manual/wget.html), [tar](https://www.gnu.org/software/tar/manual/), git.
 
 ### Tinklas
 
