@@ -1,4 +1,5 @@
 import { useAppContext } from '@/app-context/AppContext';
+import useNotifications from '@/store/notifications';
 import { Button } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { nanoid } from 'ai';
@@ -6,13 +7,14 @@ import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react
 import AudioResampler from './audio-resampler';
 import PCM from './pcm-to-wav';
 import { KaldiRTTranscriber } from './transcriber';
-import useNotifications from '@/store/notifications';
 
 type AudioRecorderProps = {
     transcriberRef: React.MutableRefObject<KaldiRTTranscriber | null>;
 };
 
-const AudioRecorder: React.FC<AudioRecorderProps> = forwardRef((props, ref) => {
+const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: () => void }, AudioRecorderProps>((props, ref) => {
+    const internalRef = useRef(null);
+
     const [, notificationsActions] = useNotifications();
     const transcriberRef = props.transcriberRef;
 
@@ -48,12 +50,12 @@ const AudioRecorder: React.FC<AudioRecorderProps> = forwardRef((props, ref) => {
 
     function showError(msg: string) {
         notificationsActions.push({
-          options: {
-            variant: 'errorNotification',
-          },
-          message: msg,
+            options: {
+                variant: 'errorNotification',
+            },
+            message: msg,
         });
-      }
+    }
 
     const startRecording = async () => {
         rec_id = nanoid();
@@ -205,7 +207,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = forwardRef((props, ref) => {
             const wavBlob = new Blob([wav], { type: 'audio/wav' })
             const blobUrl = URL.createObjectURL(wavBlob)
             setAudio(blobUrl)
-        } 
+        }
     };
 
     const concat = (arrays: [[]]) => {

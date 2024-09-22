@@ -17,7 +17,8 @@ function Transcriber() {
   const [, notificationsActions] = useNotifications();
   const transcriberRef = useRef<KaldiRTTranscriber | null>(null);
   const lastTranscriptionRef = useRef<TranscriptionResult>(new TranscriptionResult());
-  const audioRecorderRef = useRef<AudioRecorder | null>(null);
+  const audioRecorderRef = useRef<{ startRecording: () => void; stopRecording: () => void } | null>(null);
+  // const audioRecorderRef = useRef<AudioRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const lastItemRef = useRef<HTMLDivElement | null>(null);
