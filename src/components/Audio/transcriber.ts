@@ -1,3 +1,4 @@
+import { serverUrl } from '@/config';
 import { ConfigOptions, ServerStatusCode, SpeechSegment, WebSocketEvent } from './types';
 
 // Server status codes
@@ -21,8 +22,8 @@ const MSG_WEB_SOCKET_CLOSE = 10;
 
 export class Config implements ConfigOptions {
 
-  server = 'ws://localhost:8082/client/ws/speech';
-  statusServer = 'ws://localhost:8082/client/ws/status';
+  server = `${serverUrl}/speech`;
+  statusServer = `${serverUrl}/status`;
   sampleRate = 16000;
   contentType = 'content-type=audio/x-raw,+layout=(string)interleaved,+rate=(int)16000,+format=(string)S16LE,+channels=(int)1';
   onError: (type: number, error: string) => void = (et, e) => { console.error(et, e); };
