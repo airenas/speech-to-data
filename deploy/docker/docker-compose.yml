@@ -117,7 +117,7 @@ services:
      - polis   
     environment:
       - BASE_HREF=/${POLIS_PATH}/
-      - KALDI_URL=${KALDI_WS}
+      - SERVER_URL=${KALDI_WS}
     labels:
      - "traefik.enable=true"
      - "traefik.http.routers.polis.rule=PathPrefix(`/${POLIS_PATH}`)"
