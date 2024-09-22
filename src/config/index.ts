@@ -56,7 +56,9 @@ const defaultMetaTags = {
 };
 
 const makeLink = (path: string | undefined): string => {
-  return `${basePath}${path}`;
+  const trimmedBasePath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+  const trimmedPath = path?.startsWith('/') ? path.slice(1) : path;
+  return `${trimmedBasePath}/${trimmedPath}`;
 };
 
 export {
