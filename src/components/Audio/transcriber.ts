@@ -104,13 +104,13 @@ export class KaldiRTTranscriber {
     };
 
     ws.onopen = (e) => {
-      console.log('on open');
+      console.debug('on open');
       config.onReadyForSpeech?.();
       config.onEvent?.(MSG_WEB_SOCKET_OPEN, e);
     };
 
     ws.onclose = (e) => {
-      console.log('on close');
+      console.debug('on close');
       config.onEndOfSession?.();
       config.onEvent?.(MSG_WEB_SOCKET_CLOSE, `${e.code}/${e.reason}/${e.wasClean}`);
     };
@@ -121,7 +121,7 @@ export class KaldiRTTranscriber {
       config.onError?.(ERR_NETWORK, data);
     };
 
-    console.log('exit ws create');
+    console.debug('exit ws create');
     return ws;
   }
 

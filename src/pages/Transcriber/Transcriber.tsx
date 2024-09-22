@@ -101,13 +101,13 @@ function Transcriber() {
   };
 
   const initTranscriber = (): KaldiRTTranscriber => {
-    console.log('initTranscriber');
+    console.debug('initTranscriber');
 
     const cfg = new Config();
     cfg.onPartialResults = (data: any) => {
-      console.log('onPartialResults');
+      console.debug('onPartialResults');
       const transcript = data.result.hypotheses;
-      console.log('transcript', transcript);
+      // console.log('transcript', transcript);
       if (transcript) {
         const text = transcript[0].transcript;
         lastTranscriptionRef.current.updatePartial(text);
@@ -119,7 +119,7 @@ function Transcriber() {
     cfg.onResults = (data: any) => {
       console.debug('onResults');
       const transcript = data.result.hypotheses;
-      console.log('transcript', transcript);
+      // console.log('transcript', transcript);
       if (transcript) {
         const text = transcript[0].transcript;
         lastTranscriptionRef.current.addSegment(text, data.segment);
@@ -130,25 +130,22 @@ function Transcriber() {
     };
 
     cfg.onEvent = (e: any, data: any) => {
-      console.log('onEvent ' + e);
+      // console.log('onEvent ' + e);
     };
 
     cfg.onServerStatus = (data: any) => {
       setWorkers(data.num_workers_available);
-      console.log('onStatusEvent ' + workers);
+      console.debug('onStatusEvent ' + workers);
     };
 
     cfg.onReadyForSpeech = () => {
-      console.log('onReadyForSpeech', transcriberRef.current);
       if (!transcriberRef.current) return;
       transcriberRef.current.isTranscriberReady = true;
       transcriberRef.current.isTranscriberWorking = true;
       setWorking(true);
-      console.log('onReadyForSpeech end', transcriberRef.current);
     };
 
     cfg.onEndOfSpeech = () => {
-      console.log('onEndOfSpeech', transcriberRef.current);
       if (!transcriberRef.current) return;
       transcriberRef.current.isTranscriberReady = false;
       transcriberRef.current.isTranscriberWorking = false;
@@ -157,7 +154,6 @@ function Transcriber() {
     };
 
     cfg.onEndOfSession = () => {
-      console.log('onEndOfSession', transcriberRef.current);
       if (!transcriberRef.current) return;
       transcriberRef.current.isTranscriberReady = false;
       transcriberRef.current.isTranscriberWorking = false;
@@ -166,7 +162,7 @@ function Transcriber() {
     };
 
     cfg.onError = (et: number, data: any) => {
-      console.log('onError', transcriberRef.current, et, data); ``
+      console.log('onError', et, data); ``
       if (!transcriberRef.current) return;
       transcriberRef.current.isTranscriberReady = false;
       transcriberRef.current.isTranscriberWorking = false;
@@ -181,15 +177,15 @@ function Transcriber() {
   const selectedItem = lists.find(list => list.selected);
 
   useEffect(() => {
-    console.log('Selected audio URL changed to:', audioUrl);
+    // console.log('Selected audio URL changed to:', audioUrl);
     if (audioUrl && audioRef.current) {
-      console.log('Selected audio URL changed to:', audioUrl);
+      console.debug('Selected audio URL changed to:', audioUrl);
       audioRef.current.load();
     }
   }, [audioUrl]);
 
   useEffect(() => {
-    console.log('Lists updated:', lists, scrollBottom, lastItemRef.current);
+    // console.log('Lists updated:', lists, scrollBottom, lastItemRef.current);
     if (lastItemRef.current && scrollBottom) {
       lastItemRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
       // setScrollBottom(false);
@@ -197,17 +193,17 @@ function Transcriber() {
   }, [lists]);
 
   useEffect(() => {
-    console.log('Starting transcriber');
+    console.debug('Starting transcriber');
     const transcriber = initTranscriber();
     transcriberRef.current = transcriber;
     return () => {
-      console.log('Exit');
+      console.debug('exit');
       if (audioRecorderRef.current) {
-        console.log('Stopping recorder');
+        console.debug('Stopping recorder');
         audioRecorderRef.current.stopRecording();
       }
       if (transcriberRef.current) {
-        console.log('Stopping transcriber');
+        console.debug('Stopping transcriber');
         transcriberRef.current.stop();
       }
     };

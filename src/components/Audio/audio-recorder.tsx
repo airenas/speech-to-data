@@ -129,21 +129,21 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
                 audioRef.current = [];
                 let initialized = false
                 workletNode.port.onmessage = (event) => {
-                    console.log('event:', event);
+                    // console.log('event:', event);
                     if (event.data.type === 'audioData') {
                         const buffer = event.data.data;
                         if (buffer.length > 0) {
                             const pcmData = resampler.downsampleAndConvertToPCM(buffer);
                             audioRef.current.push(pcmData)
-                            console.debug(`len orig: ${buffer.length}, downsampled: ${pcmData.length}`);
-                            console.debug(`len audio: ${audioRef.current.length}`);
+                            // console.debug(`len orig: ${buffer.length}, downsampled: ${pcmData.length}`);
+                            // console.debug(`len audio: ${audioRef.current.length}`);
                             if (transcriberRef.current) {
                                 if (transcriberRef.current.isTranscriberReady && transcriberRef.current.isTranscriberWorking) {
                                     transcriberRef.current.sendAudio(pcmData);
                                 }
                             }
                             if (!transcriberRef.current?.isTranscriberReady && !initialized) {
-                                console.log('Initializing transcriber...');
+                                // console.log('Initializing transcriber...');
                                 initialized = true
                                 transcriberRef.current?.init()
                             }
@@ -154,11 +154,8 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
                 draw(canvasCtx, canvas);
             }
         } catch (error: any) {
-            // const errStr = errorAsStr(error);
-            // toast.error(`Nepavyko pradėti įrašinėti\n\n${errStr}`);
             console.error(error);
             showError(`Nepavyko pradėti įrašinėti\n\n${error.message}`);
-            //todo  ws.sendAudioEvent(rec_id, false);
             stopRecording()
         }
     };
@@ -192,7 +189,7 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
     };
 
     const prepareAudio = (audio: [[]] | null) => {
-        console.log('prepareAudio');
+        console.debug('prepareAudio');
         const startTime = performance.now()
         if (audio) {
             console.debug(`len audio: ${audio.length}`);
@@ -263,7 +260,7 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
                 // variant="contained"
                 onClick={stopRecording}
                 style={{
-                    position: 'relative', overflow: 'hidden', padding: 6, width: 80
+                    position: 'relative', overflow: 'hidden', padding: 6, width: 100
                 }}
                 disabled={!isRecording}
             >
