@@ -38,7 +38,7 @@
 
     [http.middlewares.rate-limit.rateLimit]
       average = 10
-      burst = 5
+      burst = 15
       
     [http.middlewares.cors-transcription.headers]
       accesscontrolallowmethods = "GET,OPTIONS,POST,DELETE"
