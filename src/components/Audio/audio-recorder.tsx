@@ -2,10 +2,20 @@ import { useAppContext } from '@/app-context/AppContext';
 import { Button } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { nanoid } from 'ai';
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import AudioResampler from './audio-resampler';
+import PCM from './pcm-to-wav';
+import { KaldiRTTranscriber } from './transcriber';
+import useNotifications from '@/store/notifications';
 
-const AudioRecorder: React.FC = forwardRef((props, ref) => {
+type AudioRecorderProps = {
+    transcriberRef: React.MutableRefObject<KaldiRTTranscriber | null>;
+};
+
+const AudioRecorder: React.FC<AudioRecorderProps> = forwardRef((props, ref) => {
+    const [, notificationsActions] = useNotifications();
+    const transcriberRef = props.transcriberRef;
+
     useImperativeHandle(ref, () => ({
         startRecording: () => {
             console.log('Start recording...');
@@ -19,21 +29,31 @@ const AudioRecorder: React.FC = forwardRef((props, ref) => {
 
     const theme = useTheme()
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const { isRecording, setRecording } = useAppContext()
+    const { isRecording, setRecording, setAudio } = useAppContext()
     const audioContextRef = useRef<AudioContext | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
 
     const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
     const workletNodeRef = useRef<AudioWorkletNode | null>(null);
 
+    const audioRef = useRef<any | null>(null);
+
     // const [transcriberReady] = useState(false);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const dataArrayRef = useRef<Uint8Array | null>(null);
     const animationIdRef = useRef<number | null>(null);
+    const sampleRate = 16000;
     // const ws = getWS();
     let rec_id = nanoid();
-    let audio: any = null;
 
+    function showError(msg: string) {
+        notificationsActions.push({
+          options: {
+            variant: 'errorNotification',
+          },
+          message: msg,
+        });
+      }
 
     const startRecording = async () => {
         rec_id = nanoid();
@@ -52,7 +72,7 @@ const AudioRecorder: React.FC = forwardRef((props, ref) => {
                 const constraints = {
                     audio: {
                         channelCount: 1,
-                        sampleRate: 16000,
+                        sampleRate: sampleRate,
                         sampleSize: 16,
                         echoCancellation: true,
                         autoGainControl: true,
@@ -104,24 +124,28 @@ const AudioRecorder: React.FC = forwardRef((props, ref) => {
                 source.connect(workletNode);
                 const resampler = new AudioResampler(audioContext.sampleRate, 16000); // Assuming cfg.sampleRate is 16000
 
-                audio = [];
-
+                audioRef.current = [];
+                let initialized = false
                 workletNode.port.onmessage = (event) => {
                     console.log('event:', event);
                     if (event.data.type === 'audioData') {
                         const buffer = event.data.data;
                         if (buffer.length > 0) {
                             const pcmData = resampler.downsampleAndConvertToPCM(buffer);
-                            audio.push(pcmData)
+                            audioRef.current.push(pcmData)
                             console.debug(`len orig: ${buffer.length}, downsampled: ${pcmData.length}`);
-                            //todo ws.sendAudio(rec_id, pcmData);
+                            console.debug(`len audio: ${audioRef.current.length}`);
+                            if (transcriberRef.current) {
+                                if (transcriberRef.current.isTranscriberReady && transcriberRef.current.isTranscriberWorking) {
+                                    transcriberRef.current.sendAudio(pcmData);
+                                }
+                            }
+                            if (!transcriberRef.current?.isTranscriberReady && !initialized) {
+                                console.log('Initializing transcriber...');
+                                initialized = true
+                                transcriberRef.current?.init()
+                            }
                         }
-                        // if (!transcriberReady) {
-                        //   setTranscriberReady(true);
-                        //   transcriber.init();
-                        //   // Assume updateRes is available and correctly implemented
-                        //   updateRes();
-                        // }
                     }
                 };
                 setRecording(true);
@@ -131,10 +155,19 @@ const AudioRecorder: React.FC = forwardRef((props, ref) => {
             // const errStr = errorAsStr(error);
             // toast.error(`Nepavyko pradėti įrašinėti\n\n${errStr}`);
             console.error(error);
+            showError(`Nepavyko pradėti įrašinėti\n\n${error.message}`);
             //todo  ws.sendAudioEvent(rec_id, false);
             stopRecording()
         }
     };
+
+    useEffect(() => {
+        console.log('init audio element');
+        return () => {
+            console.log('drop audio element');
+            stopRecording();
+        };
+    }, []);
 
     const stopRecording = () => {
         console.debug(`stop ${rec_id}`);
@@ -148,26 +181,31 @@ const AudioRecorder: React.FC = forwardRef((props, ref) => {
             sourceRef.current.disconnect()
         };
         if (isRecording) {
-            // todo   ws.sendAudioEvent(rec_id, false);
+            transcriberRef.current?.stopAudio();
         }
         stopStream()
         setRecording(false);
-        prepareAudio(audio);
+        prepareAudio(audioRef.current);
+        audioRef.current = null;
     };
 
     const prepareAudio = (audio: [[]] | null) => {
+        console.log('prepareAudio');
         const startTime = performance.now()
         if (audio) {
+            console.debug(`len audio: ${audio.length}`);
             const allPcmData = concat(audio)
+            if (!allPcmData) {
+                console.error('No audio data');
+                return
+            }
             const timeElapsed = performance.now() - startTime
             console.log(`prepareAudio3 time ${timeElapsed} ms`)
-            const wav = new PCM(pageData.sampleRate).encodeWAV(allPcmData)
+            const wav = new PCM(sampleRate).encodeWAV(allPcmData)
             const wavBlob = new Blob([wav], { type: 'audio/wav' })
             const blobUrl = URL.createObjectURL(wavBlob)
-            pageData.recordArea.audio = blobUrl
-            assignBlobToAudio(pageData.recordArea.audio)
-            pageData.audio = null
-        }
+            setAudio(blobUrl)
+        } 
     };
 
     const concat = (arrays: [[]]) => {

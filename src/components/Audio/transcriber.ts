@@ -1,4 +1,4 @@
-import { ConfigOptions, SpeechSegment, ServerStatusCode, WebSocketEvent } from './types';
+import { ConfigOptions, ServerStatusCode, SpeechSegment, WebSocketEvent } from './types';
 
 // Server status codes
 const SERVER_STATUS_CODE: ServerStatusCode = {
@@ -20,6 +20,7 @@ const MSG_WEB_SOCKET_OPEN = 9;
 const MSG_WEB_SOCKET_CLOSE = 10;
 
 export class Config implements ConfigOptions {
+
   server = 'ws://localhost:8082/client/ws/speech';
   statusServer = 'ws://localhost:8082/client/ws/status';
   sampleRate = 16000;
@@ -40,20 +41,24 @@ export class KaldiSpeechSegment implements SpeechSegment {
     public segment: number,
     public transcript: string,
     public final: boolean
-  ) {}
+  ) { }
 }
 
 export class KaldiRTTranscriber {
   private ws: WebSocket | null = null;
+  private wsStatus: WebSocket | null = null;
   statusReconnectInterval = 1000;
+  isTranscriberReady = false;
+  isTranscriberWorking = false;
 
   constructor(public config: ConfigOptions = {}) {
+    console.log('new KaldiRTTranscriber');
     this.config = { ...new Config(), ...config };
-    createStatusWebSocket(this);
-    this.init();
+    this.wsStatus = this.createStatusWebSocket();
+    // this.init();
   }
 
-  sendAudio(pcmData: Blob) {
+  sendAudio(pcmData: Int16Array) {
     this.socketSend(pcmData);
   }
 
@@ -123,16 +128,16 @@ export class KaldiRTTranscriber {
     return SERVER_STATUS_CODE[code] || 'Unknown error';
   }
 
-  private socketSend(item: Blob | string) {
+  private socketSend(item: Int16Array | string) {
     if (this.ws) {
       const state = this.ws.readyState;
       if (state === WebSocket.OPEN) {
-        if (item instanceof Blob) {
-          if (item.size > 0) {
+        if (item instanceof Int16Array) {
+          if (item.length > 0) {
             this.ws.send(item);
-            this.config.onEvent?.(MSG_SEND, 'Send: blob: ' + item.type + ', ' + item.size);
+            this.config.onEvent?.(MSG_SEND, 'Send: blob: ' + item.length);
           } else {
-            this.config.onEvent?.(MSG_SEND_EMPTY, 'Send: blob: ' + item.type + ', EMPTY');
+            this.config.onEvent?.(MSG_SEND_EMPTY, 'Send: blob: EMPTY');
           }
         } else {
           this.ws.send(item);
@@ -146,35 +151,42 @@ export class KaldiRTTranscriber {
     }
   }
 
+  private createStatusWebSocket() {
+    console.log('createStatusWebSocket');
+    const ws = new WebSocket(this.config.statusServer || '');
+
+    ws.onmessage = (evt: WebSocketEvent) => {
+      try {
+        this.config.onServerStatus?.(JSON.parse(evt.data));
+      } catch {
+        this.config.onServerStatus?.({ num_workers_available: 0 });
+      }
+    };
+
+    ws.onopen = () => {
+      this.statusReconnectInterval = 1000;
+    };
+
+    ws.onclose = () => {
+      setTimeout(() => this.createStatusWebSocket(), this.statusReconnectInterval);
+      this.statusReconnectInterval = Math.min(this.statusReconnectInterval * 2, 30000);
+    };
+
+    ws.onerror = () => {
+      this.config.onServerStatus?.({ num_workers_available: 0 });
+    };
+    return ws;
+  }
+
   stop() {
     if (this.ws) {
       this.ws.close();
       this.ws = null;
     }
+    if (this.wsStatus) {
+      this.wsStatus.close();
+      this.wsStatus = null;
+    }
   }
 }
 
-function createStatusWebSocket(self: KaldiRTTranscriber) {
-  const ws = new WebSocket(self.config.statusServer || '');
-
-  ws.onmessage = (evt: WebSocketEvent) => {
-    try {
-      self.config.onServerStatus?.(JSON.parse(evt.data));
-    } catch {
-      self.config.onServerStatus?.({ num_workers_available: 0 });
-    }
-  };
-
-  ws.onopen = () => {
-    self.statusReconnectInterval = 1000;
-  };
-
-  ws.onclose = () => {
-    setTimeout(() => createStatusWebSocket(self), self.statusReconnectInterval);
-    self.statusReconnectInterval = Math.min(self.statusReconnectInterval * 2, 30000);
-  };
-
-  ws.onerror = () => {
-    self.config.onServerStatus?.({ num_workers_available: 0 });
-  };
-}
