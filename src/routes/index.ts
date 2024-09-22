@@ -10,13 +10,7 @@ const routes: Routes = {
   [Pages.Transcriber]: {
     component: asyncComponentLoader(() => import('@/pages/Transcriber')),
     path: makeLink('/'),
-    title: 'DiPolis Laboratorija',
-    icon: HomeIcon,
-  },
-  [Pages.Uploader]: {
-    component: asyncComponentLoader(() => import('@/pages/Uploader')),
-    path: makeLink('/uploader'),
-    title: 'DiPolis Audio',
+    title: 'Transkribatorius',
     icon: HomeIcon,
   },
   [Pages.About]: {
@@ -24,10 +18,6 @@ const routes: Routes = {
     path: makeLink('/about'),
     title: 'Apie',
     icon: InfoIcon,
-  },
-  [Pages.Success]: {
-    component: asyncComponentLoader(() => import('@/pages/Success')),
-    path: makeLink('/success'),
   },
   [Pages.NotFound]: {
     component: asyncComponentLoader(() => import('@/pages/NotFound')),

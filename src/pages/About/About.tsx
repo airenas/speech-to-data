@@ -2,14 +2,18 @@ import Typography from '@mui/material/Typography';
 
 import Meta from '@/components/Meta';
 import { FullSizeCenteredFlexBox } from '@/components/styled';
+import { VERSION } from '@/version';
 
 function About() {
   return (
     <>
       <Meta title="apie" />
       <FullSizeCenteredFlexBox>
-        <Typography variant="h2">Di Polis Audio saugykla</Typography>
-        <div>...</div>
+        <div>
+          <Typography variant="h2">DiPolis Audio Transkribatorius</Typography>
+          <Typography variant="body1">Sukurta: VDU</Typography>
+          <Typography variant="body1">Versija: {VERSION}</Typography>
+        </div>
       </FullSizeCenteredFlexBox>
     </>
   );

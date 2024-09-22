@@ -2,7 +2,7 @@ import isMobile from '@/utils/is-mobile';
 
 import type { Notifications } from './types';
 
-const title = 'DiPolis Audio saugykla';
+const title = 'Polis Audio Transkribatorius';
 
 const email = 'airenass@gmail.com';
 
@@ -10,7 +10,7 @@ const serverUrl = import.meta.env.VITE_ENV_SERVER_URL;
 
 const basePath = import.meta.env.VITE_ENV_BASE_PATH;
 
-const repository = 'https://github.com/airenas/batch-transcriber';
+const repository = 'https://github.com/airenas/speech-to-data';
 
 const messages = {
   app: {

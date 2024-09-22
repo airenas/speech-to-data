@@ -256,7 +256,7 @@ function Transcriber() {
 
   return (
     <>
-      <Meta title="siųsti failą" />
+      <Meta title="transkribatotius" />
       <FullSizeCenteredFlexBox>
         <Box
           component="form"
@@ -355,10 +355,3 @@ function Transcriber() {
 }
 
 export default Transcriber;
-function mapErr(errorText: string): string {
-  if (errorText === 'audio expected') {
-    return 'Blogas failas - ne audio failas';
-  }
-  return errorText;
-}
-
