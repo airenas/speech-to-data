@@ -260,7 +260,7 @@ function Transcriber() {
           noValidate
           sx={{
             width: '100%',
-            maxWidth: '700px',
+            maxWidth: '1400px',
             display: 'flex',
             flexDirection: 'column',
             height: '90vh'
