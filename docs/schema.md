@@ -9,7 +9,7 @@ sequenceDiagram
 %%    participant redis
     participant asr
     end
-    participant auth as VMI admin3ws
+    participant auth as VRM admin3ws
     
     Note over user,asr: Authorizacija
 
