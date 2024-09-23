@@ -9,14 +9,14 @@ graph LR
         auth[admin3ws]
         subgraph pd-di-identify
             auth_proxy[auth_proxy]
-            redis[redis]
-            rtasr[transcriber]
+%%            redis[redis]
+            rtasr[asr]
         end
     end
     user1 <--> |https, wss| waf
     user2 <--> |https, wss| waf
     waf <--> |https, wss| auth_proxy
     auth_proxy --> |https| auth
-    auth_proxy <--> |http, encrypted data, storing session| redis
+%%    auth_proxy <--> |http, encrypted data, storing session| redis
     auth_proxy <--> |http, ws| rtasr
 ```    
