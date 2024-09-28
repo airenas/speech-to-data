@@ -7,15 +7,27 @@ import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 
+import { useAppContext } from '@/app-context/AppContext';
 import { FlexBox } from '@/components/styled';
-import { title } from '@/config';
+import { makeLink, title } from '@/config';
 import useSidebar from '@/store/sidebar';
 import useTheme from '@/store/theme';
 import { Typography } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 function Header() {
   const [, sidebarActions] = useSidebar();
   const [theme, themeActions] = useTheme();
+  const navigate = useNavigate();
+  const { user, logout } = useAppContext();
+
+  const handleLogout = async () => {
+    logout();
+  };
+
+  const handleLogin = async () => {
+    navigate(makeLink('/login'));
+  };
 
   return (
     <Box sx={{ flexGrow: 1 }} data-pw={`theme-${theme}`}>
@@ -42,6 +54,37 @@ function Header() {
             </Typography>
           </FlexBox>
           <FlexBox>
+            {!user && (<>
+              <Tooltip title="Prisijungti" arrow>
+                <IconButton
+                  color="info"
+                  edge="end"
+                  size="large"
+                  onClick={handleLogin}
+                  data-pw="login"
+                >
+                  <ThemeIcon />
+                </IconButton>
+              </Tooltip>
+            </>
+            )}
+            {user && (<>
+              <Typography variant="body1" sx={{ mr: 1 }}>
+                Sveiki {user.name}
+              </Typography>
+              <Tooltip title="Atsijungti" arrow>
+                <IconButton
+                  color="error"
+                  edge="end"
+                  size="large"
+                  onClick={handleLogout}
+                  data-pw="logout"
+                >
+                  <ThemeIcon />
+                </IconButton>
+              </Tooltip>
+            </>
+            )}
             <Divider orientation="vertical" flexItem />
             <Tooltip title="Switch theme" arrow>
               <IconButton

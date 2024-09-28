@@ -17,9 +17,9 @@ function render(App: ComponentType) {
         <HelmetProvider>
           <VersionLogger />
           <ThemeProvider>
-            <TranscriberProvider>
+           
               <App />
-            </TranscriberProvider>
+  
           </ThemeProvider>
         </HelmetProvider>
       </RecoilRoot>

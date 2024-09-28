@@ -1,4 +1,8 @@
+import { makeLink } from '@/config';
+import authService, { User } from '@/services/authService';
+import useNotifications from '@/store/notifications';
 import React, { createContext, useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export type TranscriptionView = {
     id: number;
@@ -25,6 +29,15 @@ type TranscriberContextType = {
     setWorkers: React.Dispatch<React.SetStateAction<number>>;
 
     setAudio: (audioUrl: string) => void;
+
+    user: User | null;
+    setUser: React.Dispatch<React.SetStateAction<User | null>>;
+
+    showInfo: (str: string) => void;
+    showError: (errStr: string) => void;
+    logout: () => void;
+    keepAlive: () => void;
+    login: (user: string, pass: string) => void;
 };
 
 const TranscriberContext = createContext<TranscriberContextType | undefined>(undefined);
@@ -35,6 +48,55 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const [isRecording, setRecording] = useState<boolean>(false);
     const [isWorking, setWorking] = useState<boolean>(false);
     const [workers, setWorkers] = useState<number>(0);
+    const [user, setUser] = useState<User | null>(null);
+
+    const navigate = useNavigate();
+    const [, notificationsActions] = useNotifications();
+
+    const login = async (username: string, password: string) => {
+        const res = await authService.login(username, password);
+        if (res.errorMsg) {
+            showError(res.errorMsg)
+        }
+        if (res.sessionId) {
+            sessionStorage.setItem('session_id', res.sessionId);
+        } else {
+            sessionStorage.removeItem('session_id');
+        }
+        setUser(user)
+        if (user) {
+            showInfo("Prisijungta");
+            navigate(makeLink('/'));
+        }
+    };
+
+    const logout = async () => {
+        const sessionId = sessionStorage.getItem('session_id');
+        sessionStorage.removeItem('session_id');
+        setUser(null);
+        if (sessionId) {
+            let res = await authService.logout(sessionId);
+            if (res) {
+                console.warn(res)
+            }
+        }
+        showInfo("Atsijungta")
+        navigate(makeLink('/login'));
+    };
+
+    const keepAlive = async () => {
+        const sessionId = sessionStorage.getItem('session_id');
+        if (sessionId) {
+            console.log("call keep alive")
+            let res = await authService.keepAlive(sessionId);
+            if (res) {
+                console.error(res)
+                sessionStorage.removeItem('session_id');
+                setUser(null);
+                showInfo("Atsijungta")
+            }
+        }
+    };
 
     const setAudio = (audioUrl: string) => {
         console.log('Setting audio URL:', audioUrl);
@@ -52,8 +114,30 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
         });
     };
 
+    function showInfo(msg: string) {
+        notificationsActions.push({
+            options: {
+                variant: 'infoNotification',
+            },
+            message: msg,
+        });
+    }
+
+    function showError(msg: string) {
+        notificationsActions.push({
+            options: {
+                variant: 'errorNotification',
+            },
+            message: msg,
+        });
+    }
+
     return (
-        <TranscriberContext.Provider value={{ lists, setLists, nextId, setNextId, isRecording, setRecording, workers, setWorkers, setAudio, isWorking, setWorking }}>
+        <TranscriberContext.Provider value={{
+            lists, setLists, nextId, setNextId, isRecording, setRecording, workers, setWorkers, setAudio, isWorking, setWorking, user, setUser,
+            logout, showError, showInfo, login, keepAlive
+
+        }}>
             {children}
         </TranscriberContext.Provider>
     );

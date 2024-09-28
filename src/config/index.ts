@@ -7,8 +7,10 @@ const title = 'Polis Audio Transkribatorius';
 const email = 'airenass@gmail.com';
 
 const serverUrl = import.meta.env.VITE_ENV_SERVER_URL;
+const authUrl = import.meta.env.VITE_ENV_AUTH_URL;
 
 const basePath = import.meta.env.VITE_ENV_BASE_PATH;
+
 
 const repository = 'https://github.com/airenas/speech-to-data';
 
@@ -72,4 +74,5 @@ export {
   repository,
   serverUrl,
   title,
+  authUrl,
 };

@@ -10,6 +10,8 @@ import Header from '@/sections/Header';
 import Notifications from '@/sections/Notifications';
 import SW from '@/sections/SW';
 import Sidebar from '@/sections/Sidebar';
+import { TranscriberProvider } from './app-context/AppContext';
+import { useKeepAlivePing } from './hooks/keepAlive';
 
 function App() {
   return (
@@ -18,9 +20,11 @@ function App() {
       <Notifications />
       <SW />
       <BrowserRouter>
-        <Header />
-        <Sidebar />
-        <Pages />
+        <TranscriberProvider>
+          <Header />
+          <Sidebar />
+          <Pages />
+        </TranscriberProvider>
       </BrowserRouter>
     </Fragment>
   );

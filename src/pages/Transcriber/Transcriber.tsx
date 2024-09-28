@@ -8,12 +8,14 @@ import useNotifications from '@/store/notifications';
 import { TranscriptionResult } from '@/utils/transcription-result';
 import { Box, Button, Checkbox, FormControlLabel, TextField } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 
 
 
 
 function Transcriber() {
+  const navigate = useNavigate();
   const [, notificationsActions] = useNotifications();
   const transcriberRef = useRef<KaldiRTTranscriber | null>(null);
   const lastTranscriptionRef = useRef<TranscriptionResult>(new TranscriptionResult());
@@ -25,7 +27,7 @@ function Transcriber() {
   const [scrollBottom, setScrollBottom] = useState<boolean>(false);
 
 
-  const { lists, setLists, nextId, setNextId, workers, setWorkers, isRecording, isWorking, setWorking } = useAppContext();
+  const { lists, setLists, nextId, setNextId, workers, setWorkers, isRecording, isWorking, setWorking, user } = useAppContext();
 
   const start = () => {
     setScrollBottom(true);
@@ -139,14 +141,18 @@ function Transcriber() {
     };
 
     cfg.onReadyForSpeech = () => {
-      if (!transcriberRef.current) return;
+      if (!transcriberRef.current) {
+        return;
+      }
       transcriberRef.current.isTranscriberReady = true;
       transcriberRef.current.isTranscriberWorking = true;
       setWorking(true);
     };
 
     cfg.onEndOfSpeech = () => {
-      if (!transcriberRef.current) return;
+      if (!transcriberRef.current) {
+        return;
+      }
       transcriberRef.current.isTranscriberReady = false;
       transcriberRef.current.isTranscriberWorking = false;
       setWorking(false);
@@ -154,7 +160,9 @@ function Transcriber() {
     };
 
     cfg.onEndOfSession = () => {
-      if (!transcriberRef.current) return;
+      if (!transcriberRef.current) {
+        return;
+      }
       transcriberRef.current.isTranscriberReady = false;
       transcriberRef.current.isTranscriberWorking = false;
       setWorking(false);
@@ -162,8 +170,11 @@ function Transcriber() {
     };
 
     cfg.onError = (et: number, data: any) => {
-      console.log('onError', et, data); ``
-      if (!transcriberRef.current) return;
+      console.log('onError', et, data);
+      showError("Atpažintubo klaida");
+      if (!transcriberRef.current) {
+        return;
+      }
       transcriberRef.current.isTranscriberReady = false;
       transcriberRef.current.isTranscriberWorking = false;
       setWorking(false);
@@ -175,6 +186,12 @@ function Transcriber() {
   }
 
   const selectedItem = lists.find(list => list.selected);
+
+  // useEffect(() => {
+  //   if (!user) {
+  //     navigate(makeLink('/login'));
+  //   }
+  // }, [user]);
 
   useEffect(() => {
     // console.log('Selected audio URL changed to:', audioUrl);

@@ -23,6 +23,11 @@ const routes: Routes = {
     component: asyncComponentLoader(() => import('@/pages/NotFound')),
     path: '*',
   },
+  [Pages.Login]: {
+    component: asyncComponentLoader(() => import('@/pages/Login')),
+    path: makeLink('/login'),
+    title: 'Prisijungti',
+  },
 };
 
 export default routes;

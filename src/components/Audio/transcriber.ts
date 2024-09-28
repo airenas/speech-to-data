@@ -51,6 +51,7 @@ export class KaldiRTTranscriber {
   statusReconnectInterval = 1000;
   isTranscriberReady = false;
   isTranscriberWorking = false;
+  isStopped = false;
 
   constructor(public config: ConfigOptions = {}) {
     console.log('new KaldiRTTranscriber');
@@ -75,7 +76,8 @@ export class KaldiRTTranscriber {
   private createWebSocket(): WebSocket {
     const url = `${this.config.server}?${this.config.contentType}`;
     console.log('open url ' + url);
-    const ws = new WebSocket(url);
+
+    const ws = new WebSocket(addAuth(url));
     const config = this.config;
 
     ws.onmessage = (e: WebSocketEvent) => {
@@ -154,7 +156,10 @@ export class KaldiRTTranscriber {
 
   private createStatusWebSocket() {
     console.log('createStatusWebSocket');
-    const ws = new WebSocket(this.config.statusServer || '');
+
+    const wsUrl = addAuth(this.config.statusServer || '');
+
+    const ws = new WebSocket(wsUrl);
 
     ws.onmessage = (evt: WebSocketEvent) => {
       try {
@@ -169,8 +174,11 @@ export class KaldiRTTranscriber {
     };
 
     ws.onclose = () => {
-      setTimeout(() => this.createStatusWebSocket(), this.statusReconnectInterval);
-      this.statusReconnectInterval = Math.min(this.statusReconnectInterval * 2, 30000);
+      if (!this.isStopped) {
+        setTimeout(() => this.createStatusWebSocket(), this.statusReconnectInterval);
+        this.statusReconnectInterval = Math.min(this.statusReconnectInterval * 2, 30000);
+        this.wsStatus = null;
+      }
     };
 
     ws.onerror = () => {
@@ -180,14 +188,29 @@ export class KaldiRTTranscriber {
   }
 
   stop() {
+    this.isStopped = true;
     if (this.ws) {
+      console.debug('ws stop')
       this.ws.close();
       this.ws = null;
     }
     if (this.wsStatus) {
+      console.debug('ws status stop')
       this.wsStatus.close();
       this.wsStatus = null;
     }
   }
+}
+
+function addAuth(url: string): string {
+  const sessionId = sessionStorage.getItem('session_id');
+  const res = new URL(url);
+  if (sessionId) {
+    console.log("add session id")
+    res.searchParams.append('token', sessionId);
+  } else {
+    console.warn("no session")
+  }
+  return res.toString();
 }
 

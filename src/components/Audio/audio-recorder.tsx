@@ -3,7 +3,7 @@ import useNotifications from '@/store/notifications';
 import { Button } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { nanoid } from 'ai';
-import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import AudioResampler from './audio-resampler';
 import PCM from './pcm-to-wav';
 import { KaldiRTTranscriber } from './transcriber';
@@ -13,6 +13,7 @@ type AudioRecorderProps = {
 };
 
 const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: () => void }, AudioRecorderProps>((props, ref) => {
+
     const internalRef = useRef(null);
 
     const [, notificationsActions] = useNotifications();
@@ -44,6 +45,8 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
     const analyserRef = useRef<AnalyserNode | null>(null);
     const dataArrayRef = useRef<Uint8Array | null>(null);
     const animationIdRef = useRef<number | null>(null);
+    const isStoppedRef = useRef<boolean>(false);
+    
     const sampleRate = 16000;
     // const ws = getWS();
     let rec_id = nanoid();
@@ -60,6 +63,7 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
     const startRecording = async () => {
         rec_id = nanoid();
         console.log(`start recording ${rec_id}`);
+        isStoppedRef.current = false;
         if (streamRef.current) {
             console.warn('Already recording!!!!!');
             stopRecording();
@@ -135,15 +139,12 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
                         if (buffer.length > 0) {
                             const pcmData = resampler.downsampleAndConvertToPCM(buffer);
                             audioRef.current.push(pcmData)
-                            // console.debug(`len orig: ${buffer.length}, downsampled: ${pcmData.length}`);
-                            // console.debug(`len audio: ${audioRef.current.length}`);
                             if (transcriberRef.current) {
                                 if (transcriberRef.current.isTranscriberReady && transcriberRef.current.isTranscriberWorking) {
                                     transcriberRef.current.sendAudio(pcmData);
                                 }
                             }
                             if (!transcriberRef.current?.isTranscriberReady && !initialized) {
-                                // console.log('Initializing transcriber...');
                                 initialized = true
                                 transcriberRef.current?.init()
                             }
@@ -169,6 +170,12 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
     }, []);
 
     const stopRecording = () => {
+        console.log(`stopped ${isStoppedRef.current}`)
+        if (isStoppedRef.current) {
+            return
+        }
+        isStoppedRef.current = true;
+        console.log(`stopped ${isStoppedRef.current}`)
         console.debug(`stop ${rec_id}`);
         if (animationIdRef.current) {
             cancelAnimationFrame(animationIdRef.current);
@@ -180,7 +187,11 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
             sourceRef.current.disconnect()
         };
         if (isRecording) {
-            transcriberRef.current?.stopAudio();
+            try {
+                transcriberRef.current?.stopAudio();
+            } catch (error: any) {
+                console.error(error);
+            }
         }
         stopStream()
         setRecording(false);
