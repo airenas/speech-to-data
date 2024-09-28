@@ -42,7 +42,7 @@ const authService = {
             };
             const res: LoginResult = {
                 user: newUser,
-                sessionId: null,
+                sessionId: data.session_id,
                 errorMsg: null
             };
             return res;
@@ -61,19 +61,25 @@ const authService = {
         const logoutUrl = authUrl + '/logout'
         console.debug(`logoutUrl ${logoutUrl}`)
 
-        const response = await fetchWithTimeout(logoutUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `bearer ${sessionId}`,
-            }
-        });
+        try {
+            const response = await fetchWithTimeout(logoutUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `bearer ${sessionId}`,
+                }
+            });
 
-        if (!response.ok) {
-            const body = await response.text();
-            return "Nepavyko iškviesti atsijunimo metodo"
+            if (!response.ok) {
+                const body = await response.text();
+                return "Nepavyko iškviesti atsijunimo metodo"
+            }
+            console.debug('Logged out');
+            return ""
         }
-        console.debug('Logged out');
-        return ""
+        catch (error: any) {
+            console.error('Error during logout:', error);
+            return "Nepavyko iškviesti atsijunimo metodo";
+        }
     },
 
     // You can add more methods here related to authentication, such as:

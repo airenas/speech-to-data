@@ -38,6 +38,8 @@ type TranscriberContextType = {
     logout: () => void;
     keepAlive: () => void;
     login: (user: string, pass: string) => void;
+    clearList: () => void;
+
 };
 
 const TranscriberContext = createContext<TranscriberContextType | undefined>(undefined);
@@ -80,6 +82,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 console.warn(res)
             }
         }
+        clearList();
         showInfo("Atsijungta")
         navigate(makeLink('/login'));
     };
@@ -132,10 +135,16 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
         });
     }
 
+    const clearList = () => {
+        console.debug('clearing list');
+        setLists([{ id: nextId, content: '', selected: false, audioUrl: null }]);
+        setNextId(nextId + 1);
+    };
+
     return (
         <TranscriberContext.Provider value={{
             lists, setLists, nextId, setNextId, isRecording, setRecording, workers, setWorkers, setAudio, isWorking, setWorking, user, setUser,
-            logout, showError, showInfo, login, keepAlive
+            logout, showError, showInfo, login, keepAlive, clearList
 
         }}>
             {children}

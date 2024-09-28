@@ -28,7 +28,7 @@ function Transcriber() {
   const [scrollBottom, setScrollBottom] = useState<boolean>(false);
 
 
-  const { lists, setLists, nextId, setNextId, workers, setWorkers, isRecording, isWorking, setWorking, user } = useAppContext();
+  const { lists, setLists, nextId, setNextId, workers, setWorkers, isRecording, isWorking, setWorking, user, showError, showInfo, clearList } = useAppContext();
 
   const start = () => {
     setScrollBottom(true);
@@ -51,8 +51,7 @@ function Transcriber() {
   };
 
   const clear = () => {
-    setLists([{ id: nextId, content: '', selected: false, audioUrl: null }]);
-    setNextId(nextId + 1);
+    clearList();
   };
 
   const selectAll = () => {
@@ -226,24 +225,6 @@ function Transcriber() {
       }
     };
   }, []);
-
-  function showError(msg: string) {
-    notificationsActions.push({
-      options: {
-        variant: 'errorNotification',
-      },
-      message: msg,
-    });
-  }
-
-  function showInfo(msg: string) {
-    notificationsActions.push({
-      options: {
-        variant: 'infoNotification',
-      },
-      message: msg,
-    });
-  }
 
   const isAnyNotSelected = lists.some(list => !list.selected);
 
