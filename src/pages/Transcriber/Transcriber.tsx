@@ -4,6 +4,7 @@ import { Config, KaldiRTTranscriber } from '@/components/Audio/transcriber';
 import ClearButton from '@/components/clear-button';
 import Meta from '@/components/Meta';
 import { FullSizeCenteredFlexBox } from '@/components/styled';
+import { makeLink } from '@/config';
 import useNotifications from '@/store/notifications';
 import { TranscriptionResult } from '@/utils/transcription-result';
 import { Box, Button, Checkbox, FormControlLabel, TextField } from '@mui/material';
@@ -187,11 +188,11 @@ function Transcriber() {
 
   const selectedItem = lists.find(list => list.selected);
 
-  // useEffect(() => {
-  //   if (!user) {
-  //     navigate(makeLink('/login'));
-  //   }
-  // }, [user]);
+  useEffect(() => {
+    if (!user) {
+      navigate(makeLink('/login'));
+    }
+  }, [user]);
 
   useEffect(() => {
     // console.log('Selected audio URL changed to:', audioUrl);

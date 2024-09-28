@@ -1,14 +1,17 @@
 import { useAppContext } from '@/app-context/AppContext';
 import Meta from '@/components/Meta';
 import { FullSizeCenteredFlexBox } from '@/components/styled';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { IconButton, InputAdornment } from '@mui/material';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordTimeout, setPasswordTimeout] = useState<NodeJS.Timeout | null>(null);
   const { login } = useAppContext();
 
   const handleLogin = async () => {
@@ -29,6 +32,20 @@ function Login() {
     return false;
   }
 
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+    if (passwordTimeout) {
+      clearTimeout(passwordTimeout);
+    }
+
+    if (!showPassword) {
+      const timeout = setTimeout(() => {
+        setShowPassword(false);
+      }, 5000);
+      setPasswordTimeout(timeout);
+    }
+  };
+
   return (
     <>
       <Meta title="prisijungti" />
@@ -46,13 +63,26 @@ function Login() {
           />
           <TextField
             label="Slaptažodis"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             variant="outlined"
             fullWidth
             margin="normal"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={handleKeyDown}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleTogglePasswordVisibility}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <Button
             variant="contained"
