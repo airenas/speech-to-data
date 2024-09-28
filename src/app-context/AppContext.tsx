@@ -63,8 +63,8 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
         } else {
             sessionStorage.removeItem('session_id');
         }
-        setUser(user)
-        if (user) {
+        setUser(res.user)
+        if (res.user) {
             showInfo("Prisijungta");
             navigate(makeLink('/'));
         }

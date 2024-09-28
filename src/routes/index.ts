@@ -26,7 +26,7 @@ const routes: Routes = {
   [Pages.Login]: {
     component: asyncComponentLoader(() => import('@/pages/Login')),
     path: makeLink('/login'),
-    title: 'Prisijungti',
+    // title: 'Prisijungti',
   },
 };
 

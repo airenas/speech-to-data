@@ -12,14 +12,18 @@ import { FlexBox } from '@/components/styled';
 import { makeLink, title } from '@/config';
 import useSidebar from '@/store/sidebar';
 import useTheme from '@/store/theme';
+import LoginIcon from '@mui/icons-material/Login';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 function Header() {
   const [, sidebarActions] = useSidebar();
   const [theme, themeActions] = useTheme();
   const navigate = useNavigate();
   const { user, logout } = useAppContext();
+  const location = useLocation();
+  const isLoginPage = location.pathname === makeLink('/login'); 
 
   const handleLogout = async () => {
     logout();
@@ -54,7 +58,7 @@ function Header() {
             </Typography>
           </FlexBox>
           <FlexBox>
-            {!user && (<>
+            {!user && !isLoginPage && (<>
               <Tooltip title="Prisijungti" arrow>
                 <IconButton
                   color="info"
@@ -63,14 +67,15 @@ function Header() {
                   onClick={handleLogin}
                   data-pw="login"
                 >
-                  <ThemeIcon />
+                  <LoginIcon />
                 </IconButton>
               </Tooltip>
             </>
             )}
-            {user && (<>
-              <Typography variant="body1" sx={{ mr: 1 }}>
-                Sveiki {user.name}
+            {user && (<Box display="flex" alignItems="center">
+              <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                <span style={{ fontStyle: 'italic', fontWeight: 'lighter', color: 'inherit', fontSize: "0.8em", marginRight: '10px' }}>Sveiki</span> 
+                <span style={{ fontWeight: 'bold', color: 'inherit' }}>{user.name}</span> 
               </Typography>
               <Tooltip title="Atsijungti" arrow>
                 <IconButton
@@ -80,10 +85,10 @@ function Header() {
                   onClick={handleLogout}
                   data-pw="logout"
                 >
-                  <ThemeIcon />
+                  <LogoutIcon />
                 </IconButton>
               </Tooltip>
-            </>
+            </Box>
             )}
             <Divider orientation="vertical" flexItem />
             <Tooltip title="Switch theme" arrow>

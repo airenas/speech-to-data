@@ -31,7 +31,7 @@ function Login() {
 
   return (
     <>
-      <Meta title="Prisijungti" />
+      <Meta title="prisijungti" />
       <FullSizeCenteredFlexBox>
         <div>
           {/* <Typography variant="h2">Prisijungimas</Typography> */}
