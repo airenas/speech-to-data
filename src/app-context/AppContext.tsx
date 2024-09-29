@@ -100,6 +100,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
 
     const checkLogged = async () => {
+        console.debug("check auth")
         const sessionId = sessionStorage.getItem('session_id');
         if (sessionId) {
             console.log("call check auth")

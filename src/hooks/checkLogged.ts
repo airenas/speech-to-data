@@ -18,7 +18,7 @@ export const checkLogged = () => {
         };
 
         const setPingTimer = () => {
-            setTimeout(ping, pingInterval);
+            pingTimeout = setTimeout(ping, pingInterval);
         };
 
         setPingTimer();
