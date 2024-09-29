@@ -11,7 +11,6 @@ import Notifications from '@/sections/Notifications';
 import SW from '@/sections/SW';
 import Sidebar from '@/sections/Sidebar';
 import { TranscriberProvider } from './app-context/AppContext';
-import { useKeepAlivePing } from './hooks/keepAlive';
 
 function App() {
   return (

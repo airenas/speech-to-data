@@ -37,6 +37,7 @@ type TranscriberContextType = {
     showError: (errStr: string) => void;
     logout: () => void;
     keepAlive: () => void;
+    checkLogged: () => void;
     login: (user: string, pass: string) => void;
     clearList: () => void;
 
@@ -94,6 +95,17 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
             let res = await authService.keepAlive(sessionId);
             if (res) {
                 console.error(res)
+            }
+        }
+    };
+
+    const checkLogged = async () => {
+        const sessionId = sessionStorage.getItem('session_id');
+        if (sessionId) {
+            console.log("call check auth")
+            let res = await authService.sessionOK(sessionId);
+            if (res) {
+                console.error(res)
                 sessionStorage.removeItem('session_id');
                 setUser(null);
                 showInfo("Atsijungta")
@@ -144,7 +156,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return (
         <TranscriberContext.Provider value={{
             lists, setLists, nextId, setNextId, isRecording, setRecording, workers, setWorkers, setAudio, isWorking, setWorking, user, setUser,
-            logout, showError, showInfo, login, keepAlive, clearList
+            logout, showError, showInfo, login, keepAlive, clearList, checkLogged
 
         }}>
             {children}

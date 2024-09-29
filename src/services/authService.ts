@@ -105,6 +105,30 @@ const authService = {
             console.error('Error during keep-alive:', error);
         }
         return ""
+    },
+
+    async sessionOK(sessionId: string): Promise<string> {
+        try {
+            const keepAliveUrl = authUrl
+            console.debug(`sessionOK ${keepAliveUrl}`)
+            const response = await fetchWithTimeout(keepAliveUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `bearer ${sessionId}`,
+                }
+            });
+            if (!response.ok) {
+                const responseText = await response.text();
+                console.error(`can't call sessionOK ${responseText}`);
+                if (response.status == 401) {
+                    return getError(responseText);
+                }
+            }
+            console.log('called');
+        } catch (error) {
+            console.error('Error during sessionOK:', error);
+        }
+        return ""
     }
 }
 
@@ -120,11 +144,17 @@ const fetchWithTimeout = (url: string, options: RequestInit, timeout = 5000): Pr
 export default authService;
 
 function getError(body: string): string {
-    if (body.includes("Wrong password")) {
+    if (body.includes("Wrong user or password")) {
         return "Neteisingas vartotojas arba slaptažodis"
     }
     if (body.includes("Password expired")) {
         return "Slaptažodis negalioja"
+    }
+    if (body.includes("Session expired")) {
+        return "Neprisijungta. Prisijunkite iš naujo"
+    }
+    if (body.includes("No session")) {
+        return "Neprisijungta. Prisijunkite"
     }
     return "Nepavyko prisijungti";
 }
