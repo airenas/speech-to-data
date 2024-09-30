@@ -31,8 +31,7 @@ type TranscriberContextType = {
     setAudio: (audioUrl: string) => void;
 
     user: User | null;
-    setUser: React.Dispatch<React.SetStateAction<User | null>>;
-
+    
     showInfo: (str: string) => void;
     showError: (errStr: string) => void;
     logout: () => void;
@@ -52,6 +51,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const [isWorking, setWorking] = useState<boolean>(false);
     const [workers, setWorkers] = useState<number>(0);
     const [user, setUser] = useState<User | null>(null);
+    const [lastUser, setLastUser] = useState<string | null>(null);
 
     const navigate = useNavigate();
     const [, notificationsActions] = useNotifications();
@@ -70,6 +70,11 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (res.user) {
             showInfo("Prisijungta");
             navigate(makeLink('/'));
+            if (res.user.name !== lastUser) {
+                console.log(`user changed from ${lastUser} to ${res.user.name}`)
+                clearList();
+                setLastUser(res.user.name);
+            }
         }
     };
 
@@ -103,7 +108,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
         console.debug("check auth")
         const sessionId = sessionStorage.getItem('session_id');
         if (sessionId) {
-            console.log("call check auth")
+            console.debug(`call check auth ${user}`)
             let res = await authService.sessionOK(sessionId);
             if (res) {
                 console.error(res)
@@ -156,7 +161,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     return (
         <TranscriberContext.Provider value={{
-            lists, setLists, nextId, setNextId, isRecording, setRecording, workers, setWorkers, setAudio, isWorking, setWorking, user, setUser,
+            lists, setLists, nextId, setNextId, isRecording, setRecording, workers, setWorkers, setAudio, isWorking, setWorking, user,
             logout, showError, showInfo, login, keepAlive, clearList, checkLogged
 
         }}>
