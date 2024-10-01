@@ -4,7 +4,7 @@ letsencrypt_email=
 share_pass=
 worker_count=
 sample_users=
-encryptioin_key=
+encryption_key=
 
 ### static
 polis_path=polis
