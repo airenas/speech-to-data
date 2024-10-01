@@ -46,3 +46,6 @@
       accessControlAllowHeaders = "Content-Type, Authorization"
       accesscontrolmaxage= 100
       addvaryheader = true 
+
+[http.serversTransports.skip-verify-tls-transport]
+  insecureSkipVerify = true

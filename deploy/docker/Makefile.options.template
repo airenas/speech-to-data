@@ -3,6 +3,8 @@ host=
 letsencrypt_email=
 share_pass=
 worker_count=
+sample_users=
+encryptioin_key=
 
 ### static
 polis_path=polis
