@@ -143,17 +143,27 @@ const fetchWithTimeout = (url: string, options: RequestInit, timeout = 5000): Pr
 
 export default authService;
 
-function getError(body: string): string {
-    if (body.includes("Wrong user or password")) {
+function getError(error: string | any): string {
+    if (error instanceof Error) {
+        return getErrorStr(error.message);
+    } else if (typeof error === 'string') {
+        return getErrorStr(error);
+    } else {
+        return getErrorStr('An unknown error occurred');;
+    }
+}
+
+function getErrorStr(error: string): string {
+    if (error.includes("Wrong user or password")) {
         return "Neteisingas vartotojas arba slaptažodis"
     }
-    if (body.includes("Password expired")) {
+    if (error.includes("Password expired")) {
         return "Slaptažodis negalioja"
     }
-    if (body.includes("Session expired")) {
+    if (error.includes("Session expired")) {
         return "Neprisijungta. Prisijunkite iš naujo"
     }
-    if (body.includes("No session")) {
+    if (error.includes("No session")) {
         return "Neprisijungta. Prisijunkite"
     }
     return "Nepavyko prisijungti";
