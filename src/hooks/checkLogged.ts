@@ -6,7 +6,12 @@ export const checkLogged = () => {
 
     useEffect(() => {
         let pingTimeout: any;
-        const pingInterval = 60000;
+        const getPingInterval = () => {
+            const basePingInterval = 60000;
+            const randomizationRange = 10000;
+            const randomAdjustment = Math.floor(Math.random() * randomizationRange * 2) - randomizationRange;
+            return basePingInterval + randomAdjustment;
+        };
 
         const ping = async () => {
             clearTimeout(pingTimeout);
@@ -18,7 +23,7 @@ export const checkLogged = () => {
         };
 
         const setPingTimer = () => {
-            pingTimeout = setTimeout(ping, pingInterval);
+            pingTimeout = setTimeout(ping, getPingInterval());
         };
 
         setPingTimer();
