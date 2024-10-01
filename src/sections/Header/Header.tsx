@@ -91,7 +91,7 @@ function Header() {
             </Box>
             )}
             <Divider orientation="vertical" flexItem />
-            <Tooltip title="Switch theme" arrow>
+            <Tooltip title="Pakeisti temą" arrow>
               <IconButton
                 color="info"
                 edge="end"
