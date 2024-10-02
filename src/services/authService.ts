@@ -10,19 +10,21 @@ export type LoginResult = {
     errorMsg: string | null;
 };
 
+const timeout = 8000;
+
 const authService = {
     async login(username: string, password: string): Promise<LoginResult> {
         try {
             const loginUrl = authUrl + '/login'
             console.debug(`loginUrl ${loginUrl}`)
-
-
-            const response = await fetchWithTimeout(loginUrl, {
+            const response = await fetch(loginUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ user: username, pass: password }),
+                body: JSON.stringify({ user: username, pass: password },
+                ),
+                signal: AbortSignal.timeout(timeout)
             });
 
             if (!response.ok) {
@@ -62,11 +64,12 @@ const authService = {
         console.debug(`logoutUrl ${logoutUrl}`)
 
         try {
-            const response = await fetchWithTimeout(logoutUrl, {
+            const response = await fetch(logoutUrl, {
                 method: 'POST',
                 headers: {
                     'Authorization': `bearer ${sessionId}`,
-                }
+                },
+                signal: AbortSignal.timeout(timeout)
             });
 
             if (!response.ok) {
@@ -87,11 +90,12 @@ const authService = {
         try {
             const keepAliveUrl = authUrl + '/keep-alive'
             console.debug(`keepAliveUrl ${keepAliveUrl}`)
-            const response = await fetchWithTimeout(keepAliveUrl, {
+            const response = await fetch(keepAliveUrl, {
                 method: 'POST',
                 headers: {
                     'Authorization': `bearer ${sessionId}`,
-                }
+                },
+                signal: AbortSignal.timeout(timeout)
             });
             if (!response.ok) {
                 const responseText = await response.text();
@@ -111,11 +115,12 @@ const authService = {
         try {
             const keepAliveUrl = authUrl
             console.debug(`sessionOK ${keepAliveUrl}`)
-            const response = await fetchWithTimeout(keepAliveUrl, {
+            const response = await fetch(keepAliveUrl, {
                 method: 'GET',
                 headers: {
                     'Authorization': `bearer ${sessionId}`,
-                }
+                },
+                signal: AbortSignal.timeout(timeout)
             });
             if (!response.ok) {
                 const responseText = await response.text();
@@ -131,15 +136,6 @@ const authService = {
         return ""
     }
 }
-
-const fetchWithTimeout = (url: string, options: RequestInit, timeout = 5000): Promise<Response> => {
-    return Promise.race([
-        fetch(url, options),
-        new Promise<Response>((_, reject) =>
-            setTimeout(() => reject(new Error('Request timed out')), timeout)
-        ),
-    ]);
-};
 
 export default authService;
 
