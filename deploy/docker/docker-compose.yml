@@ -86,7 +86,7 @@ services:
     image: airenas/authware:${authware_version}
     container_name: authware
     environment:
-      - RUST_LOG=trace
+      - RUST_LOG=debug
       - SESSION_TIMEOUT=6h
       - INACTIVITY_TIMEOUT=30m
       - SAMPLE_USERS=${SAMPLE_USERS}
