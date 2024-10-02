@@ -1,4 +1,6 @@
-## Deploy
+## Diegimo schema
+
+#### Supaprastinta
 
 ```mermaid
 graph LR
@@ -19,4 +21,46 @@ graph LR
     auth_proxy --> |https| auth
 %%    auth_proxy <--> |http, encrypted data, storing session| redis
     auth_proxy <--> |http, ws| rtasr
+```    
+
+#### Detali diegimo schema
+
+```mermaid
+graph LR
+    subgraph policija.lt
+        user[user]
+        waf[WAF]
+        auth[admin3ws]
+        subgraph pd-di-identify
+            redis[redis]
+            subgraph docker
+             traefik[traefik proxy]
+             authware
+             redis
+             subgraph atpažintuvas
+               kaldi-wrapper
+               punctuation-service
+               tensorflow-serving
+               kaldi-manager
+               kaldi-worker
+               number-normalization-service
+               phonemes-to-word-service
+             end
+             web[web aplikacija]
+            end
+        end
+    end
+    user <--> |https, wss| waf
+    waf <--> |https, wss| traefik
+    traefik --> |https, autorizacija| authware
+    traefik --> |http| web
+    authware --> |https, autorizacija| auth
+    authware --> |http, sesijų saugykla, koduoti duomenys| redis
+    traefik <--> |http, ws| kaldi-wrapper
+    kaldi-wrapper <--> |http, ws| kaldi-manager
+    kaldi-manager <--> |http, ws| kaldi-worker
+    kaldi-wrapper --> |http| number-normalization-service
+    kaldi-wrapper --> |http| phonemes-to-word-service
+    kaldi-wrapper --> |http| punctuation-service
+    punctuation-service --> |http| tensorflow-serving
 ```    

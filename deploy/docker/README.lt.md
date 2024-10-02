@@ -89,7 +89,7 @@ Ar domenas sukonfigūruotas teisingai. Patikriname iš kitos mašinos:
     | *letsencrypt_email* | + | El. paštas sertifikato suteikimui | admin@policija.lt |
     | *worker_count* | + | Darbo vietų skaičius, priklausdo nuo RAM | 3 |
     | *share_pass* | + | Modelių parsisiuntimo slaptažodis (pateiks VDU) | xxx123 |
-    | *sample_users* | + | Vartotojo sąsajos slaptažodis | admn:passsss23 |
+    | *sample_users* | + | LAIKINAI (kol bus pajungtas admin3ws) Vartotojo sąsajos slaptažodis | admn:passsss23 |
     | *encryption_key* | + | Sesijos užkodavimo raktas | sugeneruokite ilgesnį kaip 16 simbolių slaptažodį |
 
 1. Prisijunkite prie docker repositorijos `intelektikalt`, kurioje yra kai kurie sistemo konteineriai:
