@@ -252,7 +252,7 @@ function Transcriber() {
 
   return (
     <>
-      <Meta title="transkribatotius" />
+      <Meta title="transkribatorius" />
       <FullSizeCenteredFlexBox>
         <Box
           component="form"
@@ -319,31 +319,40 @@ function Transcriber() {
               </div>
             ))}
           </div>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginTop: '10px' }}>
-            <ClearButton
-              onClear={clear}
-              disabled={!(isAnyTextPresent || lists.length > 1) || isRecording}
-            />
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              width: '100%', 
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginTop: '10px', width: '700px' }}>
+              <ClearButton
+                onClear={clear}
+                disabled={!(isAnyTextPresent || lists.length > 1) || isRecording}
+              />
 
-            <Button variant="contained"
-              color="primary"
-              onClick={start}
-              disabled={workers === 0}
-              style={{ display: isRecording ? 'none' : 'block' }}
-              className={isRecording ? 'hidden' : ''}
-            >
-              Įrašyti&nbsp;<span style={{ fontSize: '0.8em', fontStyle: 'italic' }}>({workers})</span>
-            </Button>
+              <Button variant="contained"
+                color="primary"
+                onClick={start}
+                disabled={workers === 0}
+                style={{ display: isRecording ? 'none' : 'block' }}
+                className={isRecording ? 'hidden' : ''}
+              >
+                Įrašyti&nbsp;<span style={{ fontSize: '0.8em', fontStyle: 'italic' }}>({workers})</span>
+              </Button>
 
-            <AudioRecorder ref={audioRecorderRef} transcriberRef={transcriberRef} />
+              <AudioRecorder ref={audioRecorderRef} transcriberRef={transcriberRef} />
 
-            <Button variant="contained" color="primary" disabled={!isAnySelectedText || isRecording} onClick={copyToClipboard}>
-              Kopijuoti
-            </Button>
-            <Button variant="contained" color="primary" disabled={!isAnyNotSelected || isRecording} onClick={selectAll}>
-              Pažymėti visus
-            </Button>
+              <Button variant="contained" color="primary" disabled={!isAnySelectedText || isRecording} onClick={copyToClipboard}>
+                Kopijuoti
+              </Button>
+              <Button variant="contained" color="primary" disabled={!isAnyNotSelected || isRecording} onClick={selectAll}>
+                Pažymėti visus
+              </Button>
+            </Box>
           </Box>
+
         </Box>
       </FullSizeCenteredFlexBox>
     </>
