@@ -5,6 +5,7 @@ share_pass=
 worker_count=
 sample_users=
 encryption_key=
+waf_ip=
 
 ### static
 polis_path=polis

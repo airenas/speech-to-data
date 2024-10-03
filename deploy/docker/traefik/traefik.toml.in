@@ -19,6 +19,11 @@
 
   [entryPoints.websecure]
     address = ":443"
+    [entryPoints.websecure]
+    address = ":443"
+    [entryPoints.websecure.forwardedHeaders]
+      trustedIPs = ["${waf_ip}"]
+
 
 ################################################################
 # Traefik logs configuration

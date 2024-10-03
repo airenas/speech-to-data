@@ -91,6 +91,7 @@ Ar domenas sukonfigūruotas teisingai. Patikriname iš kitos mašinos:
     | *share_pass* | + | Modelių parsisiuntimo slaptažodis (pateiks VDU) | xxx123 |
     | *sample_users* | + | LAIKINAI (kol bus pajungtas admin3ws) Vartotojo sąsajos slaptažodis | admn:passsss23 |
     | *encryption_key* | + | Sesijos užkodavimo raktas | sugeneruokite ilgesnį kaip 16 simbolių slaptažodį |
+    | *waf_ip* | + | WAF IP adresas, iš kurio traefik priima `X-Forwareded-For` antraštę. Naudojamas kliento IP nustatymui |  |
 
 1. Prisijunkite prie docker repositorijos `intelektikalt`, kurioje yra kai kurie sistemo konteineriai:
 
