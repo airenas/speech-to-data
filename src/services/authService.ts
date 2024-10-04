@@ -162,6 +162,8 @@ function getErrorStr(error: string): string {
     if (error.includes("No session")) {
         return "Neprisijungta. Prisijunkite"
     }
+    if (error.includes("No access")) {
+        return "Nesuteiktas leidimas prisijungti"
+    }
     return "Nepavyko prisijungti";
 }
-
