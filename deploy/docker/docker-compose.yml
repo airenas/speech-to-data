@@ -62,14 +62,11 @@ services:
     labels:
      - "traefik.enable=true"
      - "traefik.http.routers.kaldi-proxy.rule=PathPrefix(`/{path:(?i)client/ws}`)"
-     - "traefik.http.routers.kaldi-proxy.middlewares=rate-limit@file"
+     - "traefik.http.routers.kaldi-proxy.middlewares=rate-limit@file,authware@docker"
      - "traefik.http.routers.kaldi-proxy.entrypoints=web,websecure"
      - "traefik.http.routers.kaldi-proxy.tls=true"
-     - "traefik.http.routers.kaldi-proxy.tls.certResolver=le-resolver"
-     - "traefik.http.routers.kaldi-proxy.tls.domains[0].main=${HOST}"
      - "traefik.http.services.kaldi-proxy.loadbalancer.server.port=8000"  
-     - "traefik.http.routers.kaldi-proxy.middlewares=authware@docker"
-
+    
   tensorflow:
     image: tensorflow/serving:1.15.0
     environment:
@@ -106,8 +103,6 @@ services:
      - "traefik.http.routers.authware.rule=PathPrefix(`/auth`)"
      - "traefik.http.routers.authware.entrypoints=websecure"
      - "traefik.http.routers.authware.tls=true"
-     - "traefik.http.routers.authware.tls.certResolver=le-resolver"
-     - "traefik.http.routers.authware.tls.domains[0].main=${HOST}"
      - "traefik.http.middlewares.authware.forwardauth.address=https://authware:8000/auth"  
      - "traefik.http.middlewares.authware.forwardauth.trustForwardHeader=true"
      - "traefik.http.middlewares.authware.forwardauth.tls.insecureSkipVerify=true"
@@ -168,8 +163,6 @@ services:
      - "traefik.http.middlewares.polis.stripprefix.prefixes=/${POLIS_PATH}"
      - "traefik.http.routers.polis.entrypoints=web,websecure"
      - "traefik.http.routers.polis.tls=true"
-     - "traefik.http.routers.polis.tls.certResolver=le-resolver"
-     - "traefik.http.routers.polis.tls.domains[0].main=${HOST}"
      - "traefik.http.routers.polis.service=polis"
      - "traefik.http.services.polis.loadbalancer.server.port=8000"     
 
