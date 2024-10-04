@@ -10,11 +10,11 @@
 ### Aparatūrai
 
 | Komponen-tas | Min reikalavimai (1 darbo vieta) | 2 darbo vietos | 3 darbo vietos |
-| -----------------|------------------|---------------------|-----------------------|
-| Platform | x86_64 | | | 
-| CPU | 64-bit, 20 branduolių | 36 | 52 |
-| HDD | 40 Gb | | |
-| RAM | 12 Gb | 20Gb  | 28Gb|
+| ------------ | -------------------------------- | -------------- | -------------- |
+| Platform     | x86_64                           |                |                |
+| CPU          | 64-bit, 20 branduolių            | 36             | 52             |
+| HDD          | 40 Gb                            |                |                |
+| RAM          | 12 Gb                            | 20Gb           | 28Gb           |
 
 ### Programinei įrangai
 
@@ -25,9 +25,9 @@ Linux OS 64-bit (papildomai žiūrėkite [reikalavimus Docker instaliacijai](htt
 
 #### Kiti
 
-| Komponentas | Min versija | URL |
-| ---|-|-|
-| Docker | 27.0.3 | [Link](https://docs.docker.com/engine/install/)
+| Komponentas | Min versija | URL                                             |
+| ----------- | ----------- | ----------------------------------------------- |
+| Docker      | 27.0.3      | [Link](https://docs.docker.com/engine/install/) |
 
 Papildomi įrankiai naudojami instaliuojant: [make](https://www.gnu.org/software/make/manual/make.html), [wget](https://www.gnu.org/software/wget/manual/wget.html), [tar](https://www.gnu.org/software/tar/manual/), git.
 
@@ -83,15 +83,20 @@ Ar domenas sukonfigūruotas teisingai. Patikriname iš kitos mašinos:
 
 1. Sukonfigūruokite *Makefile.options*:
 
-    | Parametras | Priva-lomas | Paskirtis | Pvz |
-    |------------------|-----|-----------------------------------|------------------|
-    | *host* | + | Domenas, kuriuo bus pasiekiama roboto Web sąsaja | polis.policija.lt | 
-    | *letsencrypt_email* | + | El. paštas sertifikato suteikimui | admin@policija.lt |
-    | *worker_count* | + | Darbo vietų skaičius, priklausdo nuo RAM | 3 |
-    | *share_pass* | + | Modelių parsisiuntimo slaptažodis (pateiks VDU) | xxx123 |
-    | *sample_users* | + | LAIKINAI (kol bus pajungtas admin3ws) Vartotojo sąsajos slaptažodis | admn:passsss23 |
-    | *encryption_key* | + | Sesijos užkodavimo raktas | sugeneruokite ilgesnį kaip 16 simbolių slaptažodį |
-    | *waf_ip* | + | WAF IP adresas, iš kurio traefik priima `X-Forwareded-For` antraštę. Naudojamas kliento IP nustatymui |  |
+    | Parametras          | Priva-lomas | Paskirtis                                                                                             | Pvz                                               |
+    | ------------------- | ----------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+    | *host*              | +           | Domenas, kuriuo bus pasiekiama roboto Web sąsaja                                                      | polis.policija.lt                                 |
+    | *letsencrypt_email* | +           | El. paštas sertifikato suteikimui                                                                     | admin@policija.lt                                 |
+    | *worker_count*      | +           | Darbo vietų skaičius, priklausdo nuo RAM                                                              | 3                                                 |
+    | *share_pass*        | +           | Modelių parsisiuntimo slaptažodis (pateiks VDU)                                                       | xxx123                                            |
+    | *sample_users*      | +           | LAIKINAI (kol bus pajungtas admin3ws) Vartotojo sąsajos slaptažodis                                   | admn:passsss23                                    |
+    | *encryption_key*    | +           | Sesijos užkodavimo raktas                                                                             | sugeneruokite ilgesnį kaip 16 simbolių slaptažodį |
+    | *waf_ip*            | +           | WAF IP adresas, iš kurio traefik priima `X-Forwareded-For` antraštę. Naudojamas kliento IP nustatymui |                                                   |
+    | *auth_ws_url*       | +           | Autorizacijos serverio url                                                                            |                                                   |
+    | *auth_ws_user*      | +           | Autorizacijos serverio vartotojas                                                                     |                                                   |
+    | *auth_ws_pass*      | +           | Autorizacijos serverio slaptažodis                                                                    |                                                   |
+    | *auth_ws_app_code*  | +           | Programos kodas autorizacijos serveryje                                                               |                                                   |
+
 
 1. Prisijunkite prie docker repositorijos `intelektikalt`, kurioje yra kai kurie sistemo konteineriai:
 

@@ -6,6 +6,10 @@ worker_count=
 sample_users=
 encryption_key=
 waf_ip=
+auth_ws_url=
+auth_ws_user=
+auth_ws_pass=
+auth_ws_app_code=
 
 ### static
 polis_path=polis

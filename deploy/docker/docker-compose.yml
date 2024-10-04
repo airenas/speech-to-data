@@ -93,6 +93,10 @@ services:
       - HOST=authware
       - REDIS_URL=redis://redis:6379
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - AUTH_WS_URL=${AUTH_WS_URL}
+      - AUTH_WS_USER=${AUTH_WS_USER}
+      - AUTH_WS_PASS=${AUTH_WS_PASS}
+      - AUTH_APP_CODE=${AUTH_WS_APP_CODE}
     restart: unless-stopped 
     networks:
      - polis
