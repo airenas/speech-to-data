@@ -10,7 +10,7 @@ export type LoginResult = {
     errorMsg: string | null;
 };
 
-const timeout = 8000;
+const timeout = 5000;
 
 const authService = {
     async login(username: string, password: string): Promise<LoginResult> {
