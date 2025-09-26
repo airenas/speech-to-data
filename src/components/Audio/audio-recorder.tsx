@@ -1,11 +1,10 @@
-import { useAppContext } from '@/app-context/AppContext';
+import { TranscriberStatus, useAppContext } from '@/app-context/AppContext';
 import useNotifications from '@/store/notifications';
 import { Button } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { nanoid } from 'ai';
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import AudioResampler from './audio-resampler';
-import PCM from './pcm-to-wav';
 import { KaldiRTTranscriber } from './transcriber';
 
 type AudioRecorderProps = {
@@ -32,21 +31,19 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
 
     const theme = useTheme()
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const { isRecording, setRecording, setAudio } = useAppContext()
+    const { isRecording, setRecording, transcriberStatus, isAuto, setTranscriberStatus } = useAppContext()
     const audioContextRef = useRef<AudioContext | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
 
     const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
     const workletNodeRef = useRef<AudioWorkletNode | null>(null);
 
-    const audioRef = useRef<any | null>(null);
-
     // const [transcriberReady] = useState(false);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const dataArrayRef = useRef<Uint8Array | null>(null);
     const animationIdRef = useRef<number | null>(null);
     const isStoppedRef = useRef<boolean>(false);
-    
+
     const sampleRate = 16000;
     // const ws = getWS();
     let rec_id = nanoid();
@@ -130,7 +127,6 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
                 source.connect(workletNode);
                 const resampler = new AudioResampler(audioContext.sampleRate, 16000); // Assuming cfg.sampleRate is 16000
 
-                audioRef.current = [];
                 let initialized = false
                 workletNode.port.onmessage = (event) => {
                     // console.log('event:', event);
@@ -138,7 +134,6 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
                         const buffer = event.data.data;
                         if (buffer.length > 0) {
                             const pcmData = resampler.downsampleAndConvertToPCM(buffer);
-                            audioRef.current.push(pcmData)
                             if (transcriberRef.current) {
                                 if (transcriberRef.current.isTranscriberReady && transcriberRef.current.isTranscriberWorking) {
                                     transcriberRef.current.sendAudio(pcmData);
@@ -169,6 +164,19 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
         };
     }, []);
 
+    const startStopRecording = () => {
+        if (transcriberStatus === TranscriberStatus.TRANSCRIBING) {
+            if (isAuto){
+                transcriberRef.current?.stopTranscription();
+                setTranscriberStatus(TranscriberStatus.STOPPING);
+            } else {
+                stopRecording();
+            }
+        } else if (transcriberStatus === TranscriberStatus.LISTENING) {
+            transcriberRef.current?.startTranscription(isAuto);
+        } 
+    }
+
     const stopRecording = () => {
         console.log(`stopped ${isStoppedRef.current}`)
         if (isStoppedRef.current) {
@@ -187,6 +195,7 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
             sourceRef.current.disconnect()
         };
         if (isRecording) {
+            setTranscriberStatus(TranscriberStatus.STOPPING);
             try {
                 transcriberRef.current?.stopAudio();
             } catch (error: any) {
@@ -195,42 +204,7 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
         }
         stopStream()
         setRecording(false);
-        prepareAudio(audioRef.current);
-        audioRef.current = null;
     };
-
-    const prepareAudio = (audio: [[]] | null) => {
-        console.debug('prepareAudio');
-        const startTime = performance.now()
-        if (audio) {
-            console.debug(`len audio: ${audio.length}`);
-            const allPcmData = concat(audio)
-            if (!allPcmData) {
-                console.error('No audio data');
-                return
-            }
-            const timeElapsed = performance.now() - startTime
-            console.log(`prepareAudio3 time ${timeElapsed} ms`)
-            const wav = new PCM(sampleRate).encodeWAV(allPcmData)
-            const wavBlob = new Blob([wav], { type: 'audio/wav' })
-            const blobUrl = URL.createObjectURL(wavBlob)
-            setAudio(blobUrl)
-        }
-    };
-
-    const concat = (arrays: [[]]) => {
-        const totalLength = arrays.reduce((acc, value) => acc + value.length, 0)
-        if (!arrays.length) {
-            return null
-        }
-        const result = new Float32Array(totalLength)
-        let length = 0
-        for (const array of arrays) {
-            result.set(array, length)
-            length += array.length
-        }
-        return result
-    }
 
     const stopStream = () => {
         if (streamRef.current) {
@@ -269,7 +243,7 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
         }}>
             <Button
                 // variant="contained"
-                onClick={stopRecording}
+                onClick={startStopRecording}
                 style={{
                     position: 'relative', overflow: 'hidden', padding: 6, width: 100
                 }}
@@ -277,7 +251,7 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
             >
                 <canvas ref={canvasRef}
                     style={{
-                        background: 'red',
+                        background: transcriberStatus === TranscriberStatus.TRANSCRIBING ? 'red' : 'yellow',
                         position: 'absolute',
                         top: 0,
                         left: 0,
@@ -287,7 +261,7 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
                         opacity: 0.4,
                     }
                     } />
-                {isRecording ? 'Stop' : 'Įrašyti'}
+                {transcriberStatus === TranscriberStatus.TRANSCRIBING ? 'Stop' : 'Įrašyti'}
             </Button>
         </div>
     );

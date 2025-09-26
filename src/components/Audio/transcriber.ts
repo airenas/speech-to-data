@@ -1,5 +1,5 @@
 import { serverUrl } from '@/config';
-import { ConfigOptions, ServerStatusCode, SpeechSegment, WebSocketEvent } from './types';
+import { ConfigOptions, ServerStatusCode, SpeechSegment, WebSocketEvent, TranscriptionEvent } from './types';
 
 // Server status codes
 const SERVER_STATUS_CODE: ServerStatusCode = {
@@ -28,6 +28,8 @@ export class Config implements ConfigOptions {
   contentType = 'content-type=audio/x-raw,+layout=(string)interleaved,+rate=(int)16000,+format=(string)S16LE,+channels=(int)1';
   onError: (type: number, error: string) => void = (et, e) => { console.error(et, e); };
   onReadyForSpeech: () => void = () => { console.log('onReadyForSpeech'); };
+  onStartTranscription: (id: string) => void = (id) => { console.log('onStartTranscription', id); };
+  onStopTranscription: (final: boolean) => void = (final) => { console.log('onStopTranscription', final); };
   onEndOfSpeech: () => void = () => { console.log('onEndOfSpeech'); };
   onPartialResults: (data: any) => void = (data) => { console.log('onPartialResults ' + data); };
   onResults: (data: any) => void = (data) => { console.log('onResults ' + data); };
@@ -35,6 +37,7 @@ export class Config implements ConfigOptions {
   onEndOfSession: () => void = () => { console.log('onEndOfSession'); };
   onEvent: (eventType: number, data: any) => void = (e, data) => { console.log('onEvent ' + e); };
   rafCallback: (time: number) => void = (time) => { console.log('rafCallback'); };
+  onCommand?: ((command: string) => void) = (command) => { console.log('onCommand', command); };
 }
 
 export class KaldiSpeechSegment implements SpeechSegment {
@@ -73,6 +76,20 @@ export class KaldiRTTranscriber {
     this.ws = this.createWebSocket();
   }
 
+  stopTranscription() {
+    console.log('stopTranscription');
+    this.socketSend('STOP_TRANSCRIPTION');
+  }
+
+  startTranscription(auto: boolean) {
+    console.log('startTranscription');
+    if (auto) {
+      this.socketSend('START_TRANSCRIPTION_AUTO');
+    } else {
+      this.socketSend('START_TRANSCRIPTION');
+    }
+  }
+
   private createWebSocket(): WebSocket {
     const url = `${this.config.server}?${this.config.contentType}`;
     console.log('open url ' + url);
@@ -89,12 +106,24 @@ export class KaldiRTTranscriber {
         try {
           const res = JSON.parse(data);
           if (res.status === 0) {
-            if (res.result) {
-              if (res.result.final) {
-                config.onResults?.(res);
-              } else {
-                config.onPartialResults?.(res);
+            if (res.event === TranscriptionEvent.START_TRANSCRIPTION) {
+              console.debug('onStartTranscription', res);
+              config.onStartTranscription?.(res["transcription-id"]);
+            } else if (res.event === TranscriptionEvent.STOP_TRANSCRIPTION) {
+              config.onStopTranscription?.(true);
+            } else if (res.event === TranscriptionEvent.STOPPING_TRANSCRIPTION) {
+              config.onStopTranscription?.(false);
+            }
+            else if (res.event === TranscriptionEvent.TRANSCRIPTION) {
+              if (res.result) {
+                if (res.result.final) {
+                  config.onResults?.(res);
+                } else {
+                  config.onPartialResults?.(res);
+                }
               }
+            } else { // other commands
+              config.onCommand?.(res.event);
             }
           } else {
             config.onError?.(ERR_SERVER, 'Server error: ' + res.status + ': ' + this.getDescription(res.status));

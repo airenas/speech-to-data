@@ -35,6 +35,19 @@ export default defineConfig(({ mode }) => {
     base: base_path,
     server: {
       port: 8000,
+      proxy: {
+        '/auth/': {
+          target: 'https://localhost', 
+          changeOrigin: true,
+          secure: false, 
+        },
+        '/client/': {
+          target: 'https://localhost', 
+          changeOrigin: true,
+          secure: false, 
+          ws: true,
+        },
+      },
     },
   };
 });

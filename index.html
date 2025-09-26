@@ -1,28 +1,83 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <title>Polis Transcribuoklis</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- https://web.dev/uses-rel-preconnect -->
-    <link rel="preconnect" href="https://storage.googleapis.com" />
 
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="alternate icon" href="/favicon.ico" type="image/png" sizes="16x16" />
-    <link rel="mask-icon" href="/favicon.svg" color="#FFFFFF" />
-    <meta name="theme-color" content="#ffffff" />
-    <!-- <base href="%BASE_URL%" /> -->
+<head>
+  <title>Polis Transcribuoklis</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- https://web.dev/uses-rel-preconnect -->
+  <link rel="preconnect" href="https://storage.googleapis.com" />
 
-    <!-- https://web.dev/defer-non-critical-css/ -->
-    <!-- <link
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="alternate icon" href="/favicon.ico" type="image/png" sizes="16x16" />
+  <link rel="mask-icon" href="/favicon.svg" color="#FFFFFF" />
+  <meta name="theme-color" content="#ffffff" />
+  <!-- <base href="%BASE_URL%" /> -->
+
+  <style>
+    /* Keyframe animation for pulsing border */
+    @keyframes pulseBorder {
+      0% {
+        border-color: rgba(255, 0, 0, 0.3);
+      }
+
+      25% {
+        border-color: rgba(255, 0, 0, 0.6);
+      }
+
+      50% {
+        border-color: rgba(255, 0, 0, 1);
+      }
+
+      75% {
+        border-color: rgba(255, 0, 0, 0.6);
+      }
+
+      100% {
+        border-color: rgba(255, 0, 0, 0.3);
+      }
+    }
+
+    @keyframes waveBorder {
+      0% {
+        border-color: rgba(255, 0, 0, 0.5);
+        box-shadow: 0 0 5px rgba(255, 0, 0, 0.2);
+      }
+
+      25% {
+        border-color: rgba(255, 0, 0, 0.8);
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+      }
+
+      50% {
+        border-color: rgba(255, 0, 0, 1);
+        box-shadow: 0 0 25px rgba(255, 0, 0, 0.6);
+      }
+
+      75% {
+        border-color: rgba(255, 0, 0, 0.8);
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+      }
+
+      100% {
+        border-color: rgba(255, 0, 0, 0.5);
+        box-shadow: 0 0 5px rgba(255, 0, 0, 0.2);
+      }
+    }
+  </style>
+
+  <!-- https://web.dev/defer-non-critical-css/ -->
+  <!-- <link
       rel="preload"
       href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
       as="style"
       onload="this.onload=null;this.rel='stylesheet'"
     /> -->
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

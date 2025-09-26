@@ -3,32 +3,36 @@ import authService, { User } from '@/services/authService';
 import useNotifications from '@/store/notifications';
 import React, { createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ulid } from 'ulid';
 
 export type TranscriptionView = {
-    id: number;
+    id: string;
     content: string;
     selected: boolean;
-    audioUrl: string | null;
 };
+
+export enum TranscriberStatus {
+    IDLE,
+    LISTENING,
+    TRANSCRIBING,
+    STOPPING,
+}
 
 type TranscriberContextType = {
     lists: TranscriptionView[];
     setLists: React.Dispatch<React.SetStateAction<TranscriptionView[]>>;
-    nextId: number;
-    setNextId: React.Dispatch<React.SetStateAction<number>>;
 
     // transcriber: KaldiRTTranscriber | null;
     isRecording: boolean;
     setRecording: React.Dispatch<React.SetStateAction<boolean>>;
+    isAuto: boolean;
+    setAuto: React.Dispatch<React.SetStateAction<boolean>>;
 
-
-    isWorking: boolean;
-    setWorking: React.Dispatch<React.SetStateAction<boolean>>;
+    transcriberStatus: TranscriberStatus;
+    setTranscriberStatus: React.Dispatch<React.SetStateAction<TranscriberStatus>>;
 
     workers: number;
     setWorkers: React.Dispatch<React.SetStateAction<number>>;
-
-    setAudio: (audioUrl: string) => void;
 
     user: User | null;
     
@@ -39,16 +43,16 @@ type TranscriberContextType = {
     checkLogged: () => void;
     login: (user: string, pass: string) => void;
     clearList: () => void;
-
+    selectLast: () => void;
 };
 
 const TranscriberContext = createContext<TranscriberContextType | undefined>(undefined);
 
 export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [lists, setLists] = useState<TranscriptionView[]>([{ audioUrl: '', content: '', id: 0, selected: true }]);
-    const [nextId, setNextId] = useState<number>(1);
+    const [lists, setLists] = useState<TranscriptionView[]>([{ content: '', id: "", selected: true }]);
     const [isRecording, setRecording] = useState<boolean>(false);
-    const [isWorking, setWorking] = useState<boolean>(false);
+    const [isAuto, setAuto] = useState<boolean>(false);
+    const [transcriberStatus, setTranscriberStatus] = useState<TranscriberStatus>(TranscriberStatus.IDLE);
     const [workers, setWorkers] = useState<number>(0);
     const [user, setUser] = useState<User | null>(null);
     const [lastUser, setLastUser] = useState<string | null>(null);
@@ -119,8 +123,8 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
     };
 
-    const setAudio = (audioUrl: string) => {
-        console.log('Setting audio URL:', audioUrl);
+    const selectLast = () => {
+        console.debug('selectLast');
         setLists(prevLists => {
             if (prevLists.length === 0) return prevLists; // No lists to update
             const updatedLists = [...prevLists];
@@ -128,8 +132,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
             console.log('Updating list item:', lastItemIndex);
             updatedLists[lastItemIndex] = {
                 ...updatedLists[lastItemIndex],
-                audioUrl, // Update the audio of the last list item
-                selected: true, // Select the last list item
+                selected: true, 
             };
             return updatedLists;
         });
@@ -155,14 +158,14 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     const clearList = () => {
         console.debug('clearing list');
-        setLists([{ id: nextId, content: '', selected: false, audioUrl: null }]);
-        setNextId(nextId + 1);
+        const id = ulid();
+        setLists([{ id: id, content: '', selected: false }]);
     };
 
     return (
         <TranscriberContext.Provider value={{
-            lists, setLists, nextId, setNextId, isRecording, setRecording, workers, setWorkers, setAudio, isWorking, setWorking, user,
-            logout, showError, showInfo, login, keepAlive, clearList, checkLogged
+            lists, setLists, isRecording, setRecording, workers, setWorkers, transcriberStatus, setTranscriberStatus, user,
+            logout, showError, showInfo, login, keepAlive, clearList, checkLogged, isAuto, setAuto, selectLast
 
         }}>
             {children}

@@ -1,7 +1,8 @@
 include Makefile.options
 ########################################################################################################
 data_dir?=./data
-dwn_url=https://prn509.vdu.lt/models/share
+# dwn_url=https://prn509.vdu.lt/models/share
+dwn_url=https://localhost:443/models/share
 worker_count?=1
 ########################################################################################################
 ## print usage information
@@ -37,9 +38,7 @@ logs/gui: _logs/gui
 ## _redeploy/xxx redeploys one service
 _redeploy/%: init
 	docker compose up --detach --build $*
-redeploy/ai-chatbot: _redeploy/ai-chatbot
 redeploy/proxy: _redeploy/proxy
-redeploy/demo-service: _redeploy/demo-service
 ########################################################################################################
 .env: .env.in Makefile.options
 	cat $< | envsubst > $@

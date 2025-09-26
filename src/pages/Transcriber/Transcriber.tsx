@@ -1,18 +1,18 @@
-import { TranscriptionView, useAppContext } from '@/app-context/AppContext';
+import { TranscriberStatus, TranscriptionView, useAppContext } from '@/app-context/AppContext';
 import AudioRecorder from '@/components/Audio/audio-recorder';
 import { Config, KaldiRTTranscriber } from '@/components/Audio/transcriber';
+import { TranscriptionEvent } from '@/components/Audio/types';
 import ClearButton from '@/components/clear-button';
 import Meta from '@/components/Meta';
 import { FullSizeCenteredFlexBox } from '@/components/styled';
-import { makeLink } from '@/config';
+import { audioServerUrl, makeLink } from '@/config';
+import startSound from "@/sounds/start.mp3";
+import stopSound from "@/sounds/stop.mp3";
 import useNotifications from '@/store/notifications';
 import { TranscriptionResult } from '@/utils/transcription-result';
-import { Box, Button, Checkbox, FormControlLabel, TextField } from '@mui/material';
+import { Box, Button, Checkbox, FormControlLabel, Switch, TextField } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-
-
 
 
 function Transcriber() {
@@ -21,26 +21,31 @@ function Transcriber() {
   const transcriberRef = useRef<KaldiRTTranscriber | null>(null);
   const lastTranscriptionRef = useRef<TranscriptionResult>(new TranscriptionResult());
   const audioRecorderRef = useRef<{ startRecording: () => void; stopRecording: () => void } | null>(null);
-  // const audioRecorderRef = useRef<AudioRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const lastItemRef = useRef<HTMLDivElement | null>(null);
   const [scrollBottom, setScrollBottom] = useState<boolean>(false);
+  const firstRender = useRef(true);
 
+  const startAudioRef = useRef<HTMLAudioElement | null>(null);
+  const stopAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const { lists, setLists, nextId, setNextId, workers, setWorkers, isRecording, isWorking, setWorking, user, showError, showInfo, clearList } = useAppContext();
+  const { lists, setLists, workers, setWorkers, isRecording, transcriberStatus, setTranscriberStatus, user, showError, showInfo, clearList, isAuto, setAuto, selectLast } = useAppContext();
+  const isAutoRef = useRef(isAuto);
+  const transcriberStatusRef = useRef(transcriberStatus);
+  const listsRef = useRef<TranscriptionView[]>(lists);
 
   const start = () => {
     setScrollBottom(true);
-    if (!lastEmpty()) {
-      setLists([...lists, { id: nextId, content: '', selected: false, audioUrl: null }]);
-      setNextId(nextId + 1);
-    }
     console.log('Starting recording', audioRecorderRef.current);
-    lastTranscriptionRef.current = new TranscriptionResult();
     if (audioRecorderRef.current) {
       audioRecorderRef.current.startRecording();
     }
+  };
+
+  const startStopAuto = (checked: boolean) => {
+    console.log('Toggling auto to', checked);
+    setAuto(checked);
   };
 
   const stop = () => {
@@ -52,13 +57,15 @@ function Transcriber() {
 
   const clear = () => {
     clearList();
+    setAudioUrl(null);
   };
 
   const selectAll = () => {
-    setLists(lists.map(list => ({ ...list, selected: true })));
+    const listCopy = listsRef.current;
+    setLists(listCopy.map(list => ({ ...list, selected: true })));
   };
 
-  const updateListContent = (id: number, newContent: string) => {
+  const updateListContent = (id: string, newContent: string) => {
     setLists(
       lists.map(list =>
         list.id === id ? { ...list, content: newContent } : list
@@ -66,9 +73,37 @@ function Transcriber() {
     );
   };
 
+  useEffect(() => {
+    isAutoRef.current = isAuto;
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    console.log('isAuto changed', isAuto);
+
+    if (isAuto) {
+      start();
+    } else {
+      if (transcriberStatusRef.current === TranscriberStatus.LISTENING) {
+        stop();
+      }
+    }
+  }, [isAuto]);
+
+  const updateAudio = (audioUrl: string) => {
+    console.log('updateAudio', audioUrl, transcriberStatus);
+    if (transcriberStatusRef.current === TranscriberStatus.IDLE) {
+      setAudioUrl(audioUrl);
+    } else {
+      setAudioUrl(null);
+    }
+  };
+
   const onFocus = (index: number, item: TranscriptionView) => {
     console.log('onFocus', index, item);
-    setAudioUrl(item.audioUrl);
+    let audioUrl = `${audioServerUrl}/${item.id}`;
+    console.log('Setting audio URL to', audioUrl);
+    updateAudio(audioUrl);
     if (lists.length - 1 > index) {
       setScrollBottom(false);
     } else {
@@ -77,16 +112,38 @@ function Transcriber() {
     }
   };
 
+  const startTrancriptionCapture = (id: string) => {
+    setTranscriberStatus(TranscriberStatus.TRANSCRIBING);
+    console.debug('list len=', listsRef.current.length);
+    const newLists = [...listsRef.current];
+    if (!lastEmpty()) {
+      console.debug('non empty');
+      console.debug('list len=', listsRef.current.length);
+    } else {
+      newLists.pop();
+      console.debug('empty');
+    }
+    setLists([...newLists, { id: id, content: '', selected: false }]);
+
+    console.log('Starting recording', audioRecorderRef.current);
+    lastTranscriptionRef.current = new TranscriptionResult();
+  };
+
   const lastEmpty = (): boolean => {
-    if (lists.length === 0) {
+    if (listsRef.current.length === 0) {
       return false;
     }
-    const lastItem = lists[lists.length - 1];
+    const lastItem = listsRef.current[listsRef.current.length - 1];
     return lastItem.content.trim() === '';
   };
 
   const updateRes = () => {
     const text = lastTranscriptionRef.current.getFullTranscription();
+
+    console.log('transcriberStatus', transcriberStatusRef.current);
+    if (transcriberStatusRef.current !== TranscriberStatus.TRANSCRIBING && transcriberStatusRef.current !== TranscriberStatus.STOPPING) {
+      return;
+    }
 
     setLists((prevLists) => {
       if (prevLists.length === 0) return prevLists;
@@ -107,7 +164,7 @@ function Transcriber() {
 
     const cfg = new Config();
     cfg.onPartialResults = (data: any) => {
-      console.debug('onPartialResults');
+      console.debug('onPartialResults', data);
       const transcript = data.result.hypotheses;
       // console.log('transcript', transcript);
       if (transcript) {
@@ -119,7 +176,7 @@ function Transcriber() {
     };
 
     cfg.onResults = (data: any) => {
-      console.debug('onResults');
+      console.debug('onResults', data);
       const transcript = data.result.hypotheses;
       // console.log('transcript', transcript);
       if (transcript) {
@@ -146,27 +203,63 @@ function Transcriber() {
       }
       transcriberRef.current.isTranscriberReady = true;
       transcriberRef.current.isTranscriberWorking = true;
-      setWorking(true);
+      console.debug('onReadyForSpeech isAuto=', isAutoRef.current);
+      setTranscriberStatus(TranscriberStatus.LISTENING);
+      if (!isAutoRef.current) {
+        transcriberRef.current?.startTranscription(false);
+      }
+    };
+
+    cfg.onStartTranscription = (id: string) => {
+      console.debug('onStartTranscription', id);
+      if (!transcriberRef.current) {
+        return;
+      }
+      startTrancriptionCapture(id);
+    };
+
+    cfg.onStopTranscription = (final: boolean) => {
+      if (!transcriberRef.current) {
+        return;
+      }
+      console.debug('onStopTranscription', final);
+      if (final) {
+        console.debug('Stop transcription');
+        if (!isAutoRef.current) {
+          setTranscriberStatus(TranscriberStatus.IDLE);
+        }
+        setTranscriberStatus(TranscriberStatus.LISTENING);
+        selectLast();
+      } else {
+        console.debug('Stopping transcription');
+        setTranscriberStatus(TranscriberStatus.STOPPING);
+      }
     };
 
     cfg.onEndOfSpeech = () => {
       if (!transcriberRef.current) {
         return;
       }
+      console.debug('onEndOfSpeech');
       transcriberRef.current.isTranscriberReady = false;
       transcriberRef.current.isTranscriberWorking = false;
-      setWorking(false);
       stop();
+      setTranscriberStatus(TranscriberStatus.IDLE);
+      setAuto(false);
+      selectLast();
     };
 
     cfg.onEndOfSession = () => {
       if (!transcriberRef.current) {
         return;
       }
+      console.debug('onEndOfSession');
       transcriberRef.current.isTranscriberReady = false;
       transcriberRef.current.isTranscriberWorking = false;
-      setWorking(false);
       stop();
+      setTranscriberStatus(TranscriberStatus.IDLE);
+      setAuto(false);
+      selectLast();
     };
 
     cfg.onError = (et: number, data: any) => {
@@ -177,8 +270,24 @@ function Transcriber() {
       }
       transcriberRef.current.isTranscriberReady = false;
       transcriberRef.current.isTranscriberWorking = false;
-      setWorking(false);
       stop();
+      setTranscriberStatus(TranscriberStatus.IDLE);
+      setAuto(false);
+      selectLast();
+    };
+    cfg.onCommand = (command: string) => {
+      console.log('onCommand', command);
+      if (command === TranscriptionEvent.STOP_LISTENING_COMMAND) {
+        startStopAuto(false);
+        showInfo('Sustabdyta');
+      } else if (command === TranscriptionEvent.SELECT_ALL_COMMAND) {
+        selectAll();
+        showInfo('Pažymėta');
+      } else if (command === TranscriptionEvent.COPY_COMMAND) {
+        copyToClipboard();
+      } else {
+        console.error('Unknown command: ' + command);
+      }
     };
 
     return new KaldiRTTranscriber(cfg);
@@ -195,14 +304,36 @@ function Transcriber() {
 
   useEffect(() => {
     // console.log('Selected audio URL changed to:', audioUrl);
+    console.debug('Selected audio URL changed to:', audioUrl);
     if (audioUrl && audioRef.current) {
-      console.debug('Selected audio URL changed to:', audioUrl);
+      console.debug('reloading:', audioUrl);
       audioRef.current.load();
+    } else {
+      console.debug('skip audio URL load');
     }
   }, [audioUrl]);
 
   useEffect(() => {
-    // console.log('Lists updated:', lists, scrollBottom, lastItemRef.current);
+    const prev = transcriberStatusRef.current;
+    transcriberStatusRef.current = transcriberStatus;
+    if (transcriberStatus === TranscriberStatus.TRANSCRIBING) {
+      startAudioRef.current?.play();
+    }
+    if (prev === TranscriberStatus.TRANSCRIBING &&
+      (transcriberStatus === TranscriberStatus.IDLE || transcriberStatus === TranscriberStatus.LISTENING || transcriberStatus === TranscriberStatus.STOPPING)) {
+      stopAudioRef.current?.play();
+    }
+    if (transcriberStatus !== TranscriberStatus.IDLE) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setAudioUrl("");
+    }
+  }, [transcriberStatus]);
+
+  useEffect(() => {
+    listsRef.current = lists;
+    console.log('Lists updated:', lists, scrollBottom, lastItemRef.current);
     if (lastItemRef.current && scrollBottom) {
       lastItemRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
       // setScrollBottom(false);
@@ -242,7 +373,7 @@ function Transcriber() {
   };
 
 
-  const toggleSelect = (id: number) => {
+  const toggleSelect = (id: string) => {
     setLists(lists.map(list => (list.id === id ? { ...list, selected: !list.selected } : list)));
   };
 
@@ -276,11 +407,9 @@ function Transcriber() {
             marginBottom: '10px', // Space between text areas and buttons
           }}
           >
-            <audio controls ref={audioRef} >
-              <source
-                src={audioUrl || ""}
-                type="audio/wav"
-              />
+            <audio controls ref={audioRef} src={audioUrl || ""}
+              style={{ opacity: (transcriberStatus === TranscriberStatus.IDLE ? 1 : 0.5) }}
+            >
               Your browser does not support the audio element.
             </audio>
             {lists.map((list, index) => (
@@ -298,9 +427,21 @@ function Transcriber() {
                   }}
                   ref={index === lists.length - 1 ? lastItemRef : null}
                   InputProps={{
-                    readOnly: (isRecording || isWorking) && index === lists.length - 1,
+                    readOnly: (transcriberStatus === TranscriberStatus.TRANSCRIBING || transcriberStatus === TranscriberStatus.STOPPING) && index === lists.length - 1,
                     style: {
-                      opacity: (isRecording || isWorking) && index === lists.length - 1 ? 0.7 : 1,
+                      // backgroundColor: transcriberStatus === TranscriberStatus.TRANSCRIBING && index === lists.length - 1 ? 'red' : 'inherit',
+                      opacity: (transcriberStatus === TranscriberStatus.TRANSCRIBING || transcriberStatus === TranscriberStatus.STOPPING) && index === lists.length - 1 ? 0.7 : 1,
+                      border:
+                        transcriberStatus === TranscriberStatus.TRANSCRIBING &&
+                          index === lists.length - 1
+                          ? "5px solid red"
+                          : undefined,
+                      animation:
+                        transcriberStatus === TranscriberStatus.TRANSCRIBING &&
+                          index === lists.length - 1
+                          ? "waveBorder 1.5s ease-in-out infinite"
+                          : "none",
+                      borderRadius: "5px", // makes it look smoother
                     },
                   }}
                 />
@@ -314,7 +455,7 @@ function Transcriber() {
                   }
                   label="" // No label next to the checkbox
                   sx={{ marginLeft: '10px' }}
-                  disabled={isRecording && index === lists.length - 1}
+                  disabled={(transcriberStatus === TranscriberStatus.TRANSCRIBING || transcriberStatus === TranscriberStatus.STOPPING) && index === lists.length - 1}
                 />
               </div>
             ))}
@@ -323,13 +464,24 @@ function Transcriber() {
             sx={{
               display: 'flex',
               justifyContent: 'center',
-              width: '100%', 
+              width: '100%',
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginTop: '10px', width: '700px' }}>
               <ClearButton
                 onClear={clear}
                 disabled={!(isAnyTextPresent || lists.length > 1) || isRecording}
+              />
+
+              <FormControlLabel
+                value="end"
+                control={<Switch color="warning"
+                  onChange={(_, checked) => startStopAuto(checked)}
+                  disabled={(!isRecording && workers === 0) || (transcriberStatus === TranscriberStatus.TRANSCRIBING || transcriberStatus === TranscriberStatus.STOPPING)}
+                />}
+                label={isAuto ? 'Automatinis' : 'Rankinis'}
+                checked={isAuto}
+                labelPlacement="end"
               />
 
               <Button variant="contained"
@@ -344,10 +496,11 @@ function Transcriber() {
 
               <AudioRecorder ref={audioRecorderRef} transcriberRef={transcriberRef} />
 
-              <Button variant="contained" color="primary" disabled={!isAnySelectedText || isRecording} onClick={copyToClipboard}>
+              <Button variant="contained" color="primary" disabled={!isAnySelectedText || (transcriberStatus === TranscriberStatus.TRANSCRIBING
+                || transcriberStatus === TranscriberStatus.STOPPING)} onClick={copyToClipboard}>
                 Kopijuoti
               </Button>
-              <Button variant="contained" color="primary" disabled={!isAnyNotSelected || isRecording} onClick={selectAll}>
+              <Button variant="contained" color="primary" disabled={!isAnyNotSelected || (transcriberStatus === TranscriberStatus.TRANSCRIBING || transcriberStatus === TranscriberStatus.STOPPING)} onClick={selectAll}>
                 Pažymėti visus
               </Button>
             </Box>
@@ -355,6 +508,8 @@ function Transcriber() {
 
         </Box>
       </FullSizeCenteredFlexBox>
+      <audio ref={startAudioRef} src={startSound} preload="auto" />
+      <audio ref={stopAudioRef} src={stopSound} preload="auto" />
     </>
   );
 }
