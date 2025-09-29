@@ -1,8 +1,8 @@
 /// <reference types="vitest" />
 import react from '@vitejs/plugin-react';
 import * as path from 'path';
-import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig, loadEnv } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 import manifest from './manifest.json';
 
@@ -37,15 +37,23 @@ export default defineConfig(({ mode }) => {
       port: 8000,
       proxy: {
         '/auth/': {
-          target: 'https://localhost', 
+          target: 'https://localhost',
           changeOrigin: true,
-          secure: false, 
+          secure: false,
         },
         '/client/': {
-          target: 'https://localhost', 
+          target: 'http://localhost:8084',
           changeOrigin: true,
-          secure: false, 
+          secure: false,
           ws: true,
+          configure: (proxy) => {
+            proxy.on("proxyReq", (proxyReq, req, res) => {
+              const fakeUser = { id: "dev-user" };
+              const json = JSON.stringify(fakeUser);
+              const encoded = Buffer.from(json).toString("base64");
+              proxyReq.setHeader("X-User-Info", encoded);
+            });
+          },
         },
       },
     },

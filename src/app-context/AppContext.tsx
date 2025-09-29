@@ -1,7 +1,9 @@
 import { makeLink } from '@/config';
 import authService, { User } from '@/services/authService';
+import configService from '@/services/configService';
+import textService from '@/services/textService';
 import useNotifications from '@/store/notifications';
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ulid } from 'ulid';
 
@@ -35,7 +37,7 @@ type TranscriberContextType = {
     setWorkers: React.Dispatch<React.SetStateAction<number>>;
 
     user: User | null;
-    
+
     showInfo: (str: string) => void;
     showError: (errStr: string) => void;
     logout: () => void;
@@ -56,6 +58,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const [workers, setWorkers] = useState<number>(0);
     const [user, setUser] = useState<User | null>(null);
     const [lastUser, setLastUser] = useState<string | null>(null);
+    const prevListsRef = useRef<string>("[]");
 
     const navigate = useNavigate();
     const [, notificationsActions] = useNotifications();
@@ -72,13 +75,30 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
         setUser(res.user)
         if (res.user) {
+            const user = res.user;
+            if (res.sessionId) {
+                try {
+                    const cfg = await configService.get();
+                    user.skipTour = cfg.skipTour || false;
+                    if (cfg.skipTour) {
+                        console.log("skip tour")
+                    }
+                } catch (e) {
+                    console.error(e)
+                }
+            }
+
+            setUser(user)
+
             showInfo("Prisijungta");
             navigate(makeLink('/'));
-            if (res.user.name !== lastUser) {
-                console.log(`user changed from ${lastUser} to ${res.user.name}`)
+            if (user.name !== lastUser) {
+                console.log(`user changed from ${lastUser} to ${user.name}`)
                 clearList();
                 setLastUser(res.user.name);
             }
+        } else {
+            setUser(res.user)
         }
     };
 
@@ -132,7 +152,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
             console.log('Updating list item:', lastItemIndex);
             updatedLists[lastItemIndex] = {
                 ...updatedLists[lastItemIndex],
-                selected: true, 
+                selected: true,
             };
             return updatedLists;
         });
@@ -159,8 +179,65 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const clearList = () => {
         console.debug('clearing list');
         const id = ulid();
-        setLists([{ id: id, content: '', selected: false }]);
+        let lists = [{ id: id, content: '', selected: false }]
+        setLists(lists);
+        saveLists(lists);
     };
+
+
+    const saveLists = async (lists: TranscriptionView[]) => {
+        console.log('SAVE LIST');
+        let parts = lists.filter(l => l.content && l.content.trim().length > 0)
+            .map(l => ({ id: l.id, text: l.content }));
+
+        const current = JSON.stringify(parts);
+        console.log(`Current: ${current}, Previous: ${prevListsRef.current}`);
+        if (current !== prevListsRef.current) {
+            try {
+                await textService.save({ parts: parts });
+                prevListsRef.current = current;
+                console.log("Lists saved");
+            } catch (err) {
+                console.error("Failed to save lists:", err);
+            }
+        }
+    };
+
+    useEffect(() => {
+        const initUser = async () => {
+            console.log('INIT USER', user);
+            if (!user) {
+                return;
+            }
+
+            try {
+                const res = await textService.get();
+                if (!res.parts || res.parts.length === 0) {
+                    return;
+                }
+                let list = res.parts.map((p, index) => ({
+                    id: p.id || ulid(),
+                    content: p.text,
+                    selected: true
+                }));
+                setLists(list);
+            } catch (err) {
+                console.error("Failed to load lists:", err);
+            }
+        };
+
+        initUser();
+    }, [user]);
+
+    useEffect(() => {
+        if (!user) return;
+
+        const interval = setInterval(async () => {
+            saveLists(lists);
+        }, 10000);
+
+        return () => clearInterval(interval);
+    }, [lists, user]);
 
     return (
         <TranscriberContext.Provider value={{

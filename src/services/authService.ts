@@ -2,7 +2,7 @@ import { authUrl } from "@/config";
 
 export type User = {
     name: string;
-    isFirstLogin?: boolean;
+    skipTour?: boolean;
 };
 
 export type LoginResult = {
@@ -42,7 +42,6 @@ const authService = {
 
             const newUser: User = {
                 name: data.user.name,
-                isFirstLogin: true
             };
             const res: LoginResult = {
                 user: newUser,

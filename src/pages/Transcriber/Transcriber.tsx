@@ -5,13 +5,14 @@ import { TranscriptionEvent } from '@/components/Audio/types';
 import ClearButton from '@/components/clear-button';
 import Meta from '@/components/Meta';
 import { FullSizeCenteredFlexBox } from '@/components/styled';
-import { audioServerUrl, makeLink } from '@/config';
+import { audioUrl, makeLink } from '@/config';
+import configService from '@/services/configService';
 import startSound from "@/sounds/start.mp3";
 import stopSound from "@/sounds/stop.mp3";
 import useNotifications from '@/store/notifications';
-import { useTheme } from '@mui/material/styles';
 import { TranscriptionResult } from '@/utils/transcription-result';
 import { Box, Button, Checkbox, FormControlLabel, Switch, TextField } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { useEffect, useRef, useState } from 'react';
 import Joyride from 'react-joyride';
 import { useNavigate } from 'react-router-dom';
@@ -24,7 +25,7 @@ function Transcriber() {
   const lastTranscriptionRef = useRef<TranscriptionResult>(new TranscriptionResult());
   const audioRecorderRef = useRef<{ startRecording: () => void; stopRecording: () => void } | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioFileUrl, setAudioFileUrl] = useState<string | null>(null);
   const lastItemRef = useRef<HTMLDivElement | null>(null);
   const [scrollBottom, setScrollBottom] = useState<boolean>(false);
   const firstRender = useRef(true);
@@ -60,7 +61,7 @@ function Transcriber() {
 
   const clear = () => {
     clearList();
-    setAudioUrl(null);
+    setAudioFileUrl(null);
   };
 
   const selectAll = () => {
@@ -96,17 +97,17 @@ function Transcriber() {
   const updateAudio = (audioUrl: string) => {
     console.log('updateAudio', audioUrl, transcriberStatus);
     if (transcriberStatusRef.current === TranscriberStatus.IDLE) {
-      setAudioUrl(audioUrl);
+      setAudioFileUrl(audioUrl);
     } else {
-      setAudioUrl(null);
+      setAudioFileUrl(null);
     }
   };
 
   const onFocus = (index: number, item: TranscriptionView) => {
     console.log('onFocus', index, item);
-    let audioUrl = `${audioServerUrl}/${item.id}`;
+    let audioFileUrl = `${audioUrl}/${item.id}`;
     console.log('Setting audio URL to', audioUrl);
-    updateAudio(audioUrl);
+    updateAudio(audioFileUrl);
     if (lists.length - 1 > index) {
       setScrollBottom(false);
     } else {
@@ -303,7 +304,7 @@ function Transcriber() {
     if (!user) {
       navigate(makeLink('/login'));
     }
-    if (user?.isFirstLogin) {
+    if (!user?.skipTour) {
       setRunTour(true);
     }
   }, [user]);
@@ -333,7 +334,7 @@ function Transcriber() {
       if (audioRef.current) {
         audioRef.current.pause();
       }
-      setAudioUrl("");
+      setAudioFileUrl("");
     }
   }, [transcriberStatus]);
 
@@ -390,19 +391,45 @@ function Transcriber() {
   const [runTour, setRunTour] = useState(false);
 
   const introSteps = [
-    { target: "#record-button", content: "Spauskite čia, kad pradėtumėte arba sustabdytumėte įrašymą. Skliausteliuose esantis skaičius rodo laisvas įrašymo sesijas. Jei nėra laisvų sesijų, iraįyti negalėsite" },
+    { target: "#record-button", content: "Spauskite čia, kad pradėtumėte arba sustabdytumėte įrašymą. Skliausteliuose esantis skaičius rodo laisvas įrašymo sesijas. Jei nėra laisvų sesijų, irašyti negalėsite" },
     { target: "#transcription-area", content: "Diktavimo rezultatai. Tekstus taip pat galite redaguoti." },
     { target: "#audio-player", content: "Galite perklausyti diktavimo sesiją, kiekvienam laukeliui atskirai" },
     { target: "#auto-button", content: "Automatinis valdymas balsu. Įjungia klausymo režimą. Sistema klausosi mikrofono ir pradeda įrašymą ištarus komandą \"pradėk rašyti\". Baigia įrašymą ištarus komandą \"baik rašyti\". Sustabdo klausymo režimą ištarus komandą \"baik klaysyti\"." },
     { target: "#select-all-button", content: "Pažymi visus laukelius" },
     { target: "#copy-button", content: "Nukopijuoja pažymėtų laukelių tekstą į iškarpinę" },
     { target: "#clear-button", content: "Ištrina visus diktavimo rezultatus. Paspaudus turite 5s atšaukti ištrynimo komandą" },
-    { target: "#logout-button", content: "Atsijungia nuo sistemos. Jei netyčia uždarėte langą ar atsijungėte nuo sistemos, nepergyvenkite - sistema atsimena paskutinius Jūsų įrašus 6h (arba kol neišvalote diktavimo lango). Tiesiog prisijunkite iš naujo." },
+    {
+      target: "#logout-button", content: (
+        <span>
+          Atsijungia nuo sistemos. <strong>Jei netyčia uždarėte langą ar atsijungėte nuo sistemos, nenusikopijavę transkribuoto teksto</strong> - nepergyvenkite, sistema atsimena paskutinius Jūsų įrašus 6h (arba kol neišvalote diktavimo lango). Tiesiog prisijunkite iš naujo.
+        </span>
+      )
+    },
   ];
 
   const overlayColor = theme.palette.mode === 'dark'
-  ? "rgba(0, 0, 0, 0.7)"
-  : "rgba(0, 0, 0, 0.3)";
+    ? "rgba(0, 0, 0, 0.7)"
+    : "rgba(0, 0, 0, 0.3)";
+
+  function tourStatusChanged(status: string) {
+    console.log('tourStatusChanged', status);
+    if (status === 'finished' || status === 'skipped') {
+      (
+        async () => {
+          ``
+          try {
+            await configService.save({ skipTour: true });
+            console.log("skip tour saved");
+          } catch (e) {
+            console.error(e)
+          }
+        }
+      )();
+      if (user) {
+        user.skipTour = true;
+      }
+    }
+  }
 
   return (
     <>
@@ -431,7 +458,7 @@ function Transcriber() {
           }}
             id="transcription-area"
           >
-            <audio controls ref={audioRef} src={audioUrl || ""}
+            <audio controls ref={audioRef} src={audioFileUrl || ""}
               style={{ opacity: (transcriberStatus === TranscriberStatus.IDLE ? 1 : 0.5) }}
               id="audio-player"
             >
@@ -544,20 +571,26 @@ function Transcriber() {
           run={runTour}
           continuous
           showSkipButton
+          scrollToFirstStep={true}
           locale={{
             back: "Atgal",
             close: "Uždaryti",
             last: "Pabaigti turą",
             next: "Toliau",
-            skip: "Praleisti informacijos turą"
+            skip: "Praleisti paaiškinimo turą",
+            open: "Atidaryti paaiškinimo turą"
           }}
           styles={{
             options: {
-              primaryColor: theme.palette.primary.main,
-              textColor: theme.palette.text.primary,   
-              backgroundColor: theme.palette.background.paper,  
+              primaryColor: theme.palette.warning.main,
+              textColor: theme.palette.text.primary,
+              backgroundColor: theme.palette.background.paper,
               overlayColor: overlayColor
             }
+          }}
+          callback={(data) => {
+            const { status, action } = data;
+            tourStatusChanged(status);
           }}
         />
       </FullSizeCenteredFlexBox>
