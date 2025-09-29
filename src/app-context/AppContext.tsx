@@ -234,7 +234,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
         const interval = setInterval(async () => {
             saveLists(lists);
-        }, 10000);
+        }, 5000);
 
         return () => clearInterval(interval);
     }, [lists, user]);

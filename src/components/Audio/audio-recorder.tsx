@@ -245,7 +245,8 @@ const AudioRecorder = forwardRef<{ startRecording: () => void; stopRecording: ()
                 // variant="contained"
                 onClick={startStopRecording}
                 style={{
-                    position: 'relative', overflow: 'hidden', padding: 6, width: 100
+                    position: 'relative', overflow: 'hidden', padding: 6, width: 100,
+                    color: theme.palette.getContrastText(theme.palette.background.paper),
                 }}
                 disabled={!isRecording}
             >
