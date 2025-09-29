@@ -2,6 +2,7 @@ import { authUrl } from "@/config";
 
 export type User = {
     name: string;
+    isFirstLogin?: boolean;
 };
 
 export type LoginResult = {
@@ -40,7 +41,8 @@ const authService = {
             const data = await response.json();
 
             const newUser: User = {
-                name: data.user.name
+                name: data.user.name,
+                isFirstLogin: true
             };
             const res: LoginResult = {
                 user: newUser,

@@ -65,6 +65,7 @@ const ClearButton: React.FC<ClearButtonProps> = ({ onClear, disabled }) => {
             color="primary"
             onClick={handleClick}
             disabled={disabled}
+            id="clear-button"
             sx={{
                 position: 'relative',
                 overflow: 'hidden',

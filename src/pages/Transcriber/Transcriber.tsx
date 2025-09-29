@@ -9,9 +9,11 @@ import { audioServerUrl, makeLink } from '@/config';
 import startSound from "@/sounds/start.mp3";
 import stopSound from "@/sounds/stop.mp3";
 import useNotifications from '@/store/notifications';
+import { useTheme } from '@mui/material/styles';
 import { TranscriptionResult } from '@/utils/transcription-result';
 import { Box, Button, Checkbox, FormControlLabel, Switch, TextField } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
+import Joyride from 'react-joyride';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -26,6 +28,7 @@ function Transcriber() {
   const lastItemRef = useRef<HTMLDivElement | null>(null);
   const [scrollBottom, setScrollBottom] = useState<boolean>(false);
   const firstRender = useRef(true);
+  const theme = useTheme();
 
   const startAudioRef = useRef<HTMLAudioElement | null>(null);
   const stopAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -300,6 +303,9 @@ function Transcriber() {
     if (!user) {
       navigate(makeLink('/login'));
     }
+    if (user?.isFirstLogin) {
+      setRunTour(true);
+    }
   }, [user]);
 
   useEffect(() => {
@@ -381,6 +387,23 @@ function Transcriber() {
 
   const isAnySelectedText = lists.filter(list => list.selected).some(list => list.content.trim() !== '');
 
+  const [runTour, setRunTour] = useState(false);
+
+  const introSteps = [
+    { target: "#record-button", content: "Spauskite čia, kad pradėtumėte arba sustabdytumėte įrašymą. Skliausteliuose esantis skaičius rodo laisvas įrašymo sesijas. Jei nėra laisvų sesijų, iraįyti negalėsite" },
+    { target: "#transcription-area", content: "Diktavimo rezultatai. Tekstus taip pat galite redaguoti." },
+    { target: "#audio-player", content: "Galite perklausyti diktavimo sesiją, kiekvienam laukeliui atskirai" },
+    { target: "#auto-button", content: "Automatinis valdymas balsu. Įjungia klausymo režimą. Sistema klausosi mikrofono ir pradeda įrašymą ištarus komandą \"pradėk rašyti\". Baigia įrašymą ištarus komandą \"baik rašyti\". Sustabdo klausymo režimą ištarus komandą \"baik klaysyti\"." },
+    { target: "#select-all-button", content: "Pažymi visus laukelius" },
+    { target: "#copy-button", content: "Nukopijuoja pažymėtų laukelių tekstą į iškarpinę" },
+    { target: "#clear-button", content: "Ištrina visus diktavimo rezultatus. Paspaudus turite 5s atšaukti ištrynimo komandą" },
+    { target: "#logout-button", content: "Atsijungia nuo sistemos. Jei netyčia uždarėte langą ar atsijungėte nuo sistemos, nepergyvenkite - sistema atsimena paskutinius Jūsų įrašus 6h (arba kol neišvalote diktavimo lango). Tiesiog prisijunkite iš naujo." },
+  ];
+
+  const overlayColor = theme.palette.mode === 'dark'
+  ? "rgba(0, 0, 0, 0.7)"
+  : "rgba(0, 0, 0, 0.3)";
+
   return (
     <>
       <Meta title="transkribatorius" />
@@ -406,9 +429,11 @@ function Transcriber() {
             borderRadius: '4px',
             marginBottom: '10px', // Space between text areas and buttons
           }}
+            id="transcription-area"
           >
             <audio controls ref={audioRef} src={audioUrl || ""}
               style={{ opacity: (transcriberStatus === TranscriberStatus.IDLE ? 1 : 0.5) }}
+              id="audio-player"
             >
               Your browser does not support the audio element.
             </audio>
@@ -482,6 +507,7 @@ function Transcriber() {
                 label={isAuto ? 'Automatinis' : 'Rankinis'}
                 checked={isAuto}
                 labelPlacement="end"
+                id="auto-button"
               />
 
               <Button variant="contained"
@@ -490,6 +516,7 @@ function Transcriber() {
                 disabled={workers === 0}
                 style={{ display: isRecording ? 'none' : 'block' }}
                 className={isRecording ? 'hidden' : ''}
+                id="record-button"
               >
                 Įrašyti&nbsp;<span style={{ fontSize: '0.8em', fontStyle: 'italic' }}>({workers})</span>
               </Button>
@@ -497,16 +524,42 @@ function Transcriber() {
               <AudioRecorder ref={audioRecorderRef} transcriberRef={transcriberRef} />
 
               <Button variant="contained" color="primary" disabled={!isAnySelectedText || (transcriberStatus === TranscriberStatus.TRANSCRIBING
-                || transcriberStatus === TranscriberStatus.STOPPING)} onClick={copyToClipboard}>
+                || transcriberStatus === TranscriberStatus.STOPPING)} onClick={copyToClipboard}
+                id="copy-button"
+              >
                 Kopijuoti
               </Button>
-              <Button variant="contained" color="primary" disabled={!isAnyNotSelected || (transcriberStatus === TranscriberStatus.TRANSCRIBING || transcriberStatus === TranscriberStatus.STOPPING)} onClick={selectAll}>
+              <Button variant="contained" color="primary" disabled={!isAnyNotSelected || (transcriberStatus === TranscriberStatus.TRANSCRIBING || transcriberStatus === TranscriberStatus.STOPPING)} onClick={selectAll}
+                id="select-all-button"
+              >
                 Pažymėti visus
               </Button>
             </Box>
           </Box>
 
         </Box>
+
+        <Joyride
+          steps={introSteps}
+          run={runTour}
+          continuous
+          showSkipButton
+          locale={{
+            back: "Atgal",
+            close: "Uždaryti",
+            last: "Pabaigti turą",
+            next: "Toliau",
+            skip: "Praleisti informacijos turą"
+          }}
+          styles={{
+            options: {
+              primaryColor: theme.palette.primary.main,
+              textColor: theme.palette.text.primary,   
+              backgroundColor: theme.palette.background.paper,  
+              overlayColor: overlayColor
+            }
+          }}
+        />
       </FullSizeCenteredFlexBox>
       <audio ref={startAudioRef} src={startSound} preload="auto" />
       <audio ref={stopAudioRef} src={stopSound} preload="auto" />

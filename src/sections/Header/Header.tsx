@@ -84,6 +84,7 @@ function Header() {
                   size="large"
                   onClick={handleLogout}
                   data-pw="logout"
+                  id = "logout-button"
                 >
                   <LogoutIcon />
                 </IconButton>
