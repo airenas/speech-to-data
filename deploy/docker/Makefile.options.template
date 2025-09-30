@@ -16,3 +16,6 @@ polis_path=polis
 traefik_debug_level=INFO
 punctuation_dir=$(CURDIR)/data/models/punctuation
 asr_dir=$(CURDIR)/data/models/asr/v4
+
+encryption_key=
+cache_encryption_key=
