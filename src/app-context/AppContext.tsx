@@ -8,6 +8,7 @@ import authService, { User } from '@/services/authService';
 import configService from '@/services/configService';
 import textService from '@/services/textService';
 import useNotifications from '@/store/notifications';
+import { SESSION_ID_KEY } from '@/utils/auth';
 
 import { TranscriberStatus, TranscriptionView } from './types';
 
@@ -64,9 +65,9 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
       showError(res.errorMsg);
     }
     if (res.sessionId) {
-      sessionStorage.setItem('session_id', res.sessionId);
+      sessionStorage.setItem(SESSION_ID_KEY, res.sessionId);
     } else {
-      sessionStorage.removeItem('session_id');
+      sessionStorage.removeItem(SESSION_ID_KEY);
     }
     setUser(res.user);
     if (res.user) {
@@ -98,8 +99,8 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const logout = async () => {
-    const sessionId = sessionStorage.getItem('session_id');
-    sessionStorage.removeItem('session_id');
+    const sessionId = sessionStorage.getItem(SESSION_ID_KEY);
+    sessionStorage.removeItem(SESSION_ID_KEY);
     setUser(null);
     if (sessionId) {
       const res = await authService.logout(sessionId);
@@ -113,7 +114,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const keepAlive = async () => {
-    const sessionId = sessionStorage.getItem('session_id');
+    const sessionId = sessionStorage.getItem(SESSION_ID_KEY);
     if (sessionId) {
       console.log('call keep alive');
       const res = await authService.keepAlive(sessionId);
@@ -125,13 +126,13 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const checkLogged = async () => {
     console.debug('check auth');
-    const sessionId = sessionStorage.getItem('session_id');
+    const sessionId = sessionStorage.getItem(SESSION_ID_KEY);
     if (sessionId) {
       console.debug(`call check auth ${user}`);
       const res = await authService.sessionOK(sessionId);
       if (res) {
         console.error(res);
-        sessionStorage.removeItem('session_id');
+        sessionStorage.removeItem(SESSION_ID_KEY);
         setUser(null);
         showInfo('Atsijungta');
       }

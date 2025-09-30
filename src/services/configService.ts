@@ -1,4 +1,5 @@
 import { configUrl } from '@/config';
+import { SESSION_ID_KEY } from '@/utils/auth';
 
 export type Config = {
   skipTour?: boolean;
@@ -10,7 +11,7 @@ const configService = {
   async get(): Promise<Config> {
     try {
       console.debug(`get cfg ${configUrl}`);
-      const sessionId = sessionStorage.getItem('session_id');
+      const sessionId = sessionStorage.getItem(SESSION_ID_KEY);
       if (!sessionId) {
         throw new Error('No session ID found in sessionStorage');
       }
@@ -35,7 +36,7 @@ const configService = {
 
   async save(config: Config): Promise<string> {
     try {
-      const sessionId = sessionStorage.getItem('session_id');
+      const sessionId = sessionStorage.getItem(SESSION_ID_KEY);
       if (!sessionId) {
         return 'no session';
       }

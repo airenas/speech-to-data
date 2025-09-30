@@ -17,6 +17,7 @@ import { audioUrl, makeLink } from '@/config';
 import configService from '@/services/configService';
 import startSound from '@/sounds/start.mp3';
 import stopSound from '@/sounds/stop.mp3';
+import { addAuth } from '@/utils/auth';
 import { TranscriptionResult } from '@/utils/transcription-result';
 
 function Transcriber() {
@@ -108,7 +109,7 @@ function Transcriber() {
   }, [isAuto]);
 
   const updateAudio = (audioLocalUrl: string) => {
-    console.debug('updateAudio', audioLocalUrl, transcriberStatus);
+    // console.debug('updateAudio', audioLocalUrl, transcriberStatus);
     if (transcriberStatusRef.current === TranscriberStatus.IDLE) {
       setAudioFileUrl(audioLocalUrl);
     } else {
@@ -120,7 +121,8 @@ function Transcriber() {
     console.log('onFocus', index, item);
     const audioFileUrl = `${audioUrl}/${item.id}`;
     console.log('Setting audio URL to', audioUrl);
-    updateAudio(audioFileUrl);
+    const securedAudioFileUrl = addAuth(audioFileUrl);
+    updateAudio(securedAudioFileUrl);
     if (lists.length - 1 > index) {
       setScrollBottom(false);
     } else {

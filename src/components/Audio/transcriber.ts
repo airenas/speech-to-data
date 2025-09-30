@@ -1,4 +1,5 @@
 import { serverUrl } from '@/config';
+import { addAuth } from '@/utils/auth';
 
 import {
   ConfigOptions,
@@ -272,16 +273,4 @@ export class KaldiRTTranscriber {
       this.wsStatus = null;
     }
   }
-}
-
-function addAuth(url: string): string {
-  const sessionId = sessionStorage.getItem('session_id');
-  const res = new URL(url);
-  if (sessionId) {
-    console.log('add session id');
-    res.searchParams.append('token', sessionId);
-  } else {
-    console.warn('no session');
-  }
-  return res.toString();
 }

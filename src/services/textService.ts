@@ -1,4 +1,5 @@
 import { textUrl } from '@/config';
+import { SESSION_ID_KEY } from '@/utils/auth';
 
 export type Part = {
   id: string;
@@ -15,7 +16,7 @@ const textService = {
   async get(): Promise<Parts> {
     try {
       console.debug(`get texts ${textUrl}`);
-      const sessionId = sessionStorage.getItem('session_id');
+      const sessionId = sessionStorage.getItem(SESSION_ID_KEY);
       if (!sessionId) {
         throw new Error('No session ID found in sessionStorage');
       }
@@ -39,7 +40,7 @@ const textService = {
 
   async save(input: Parts): Promise<string> {
     try {
-      const sessionId = sessionStorage.getItem('session_id');
+      const sessionId = sessionStorage.getItem(SESSION_ID_KEY);
       if (!sessionId) {
         return 'no session';
       }
