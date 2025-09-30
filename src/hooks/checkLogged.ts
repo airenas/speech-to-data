@@ -2,11 +2,11 @@ import { useEffect } from 'react';
 
 import { useAppContext } from '@/app-context/AppContext';
 
-export const checkLogged = () => {
+export const useCheckLogged = () => {
   const { checkLogged } = useAppContext();
 
   useEffect(() => {
-    let pingTimeout: any;
+    let pingTimeout: NodeJS.Timeout | undefined;
     const getPingInterval = () => {
       const basePingInterval = 60000;
       const randomizationRange = 10000;
@@ -33,5 +33,5 @@ export const checkLogged = () => {
     return () => {
       clearTimeout(pingTimeout);
     };
-  }, []);
+  }, [checkLogged]);
 };

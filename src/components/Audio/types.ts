@@ -1,3 +1,29 @@
+export interface TranscriptionSegment {
+  segment: number;
+  transcript: string;
+  final: boolean;
+}
+
+export interface TranscriptionResponse {
+  status: number;
+  segment: number;
+  event: string;
+  'transcription-id'?: string;
+  result?: {
+    final: boolean;
+    transcript?: string;
+    hypotheses?: { transcript: string; confidence: number }[];
+    [key: string]: unknown;
+  };
+  'old-updates'?: TranscriptionSegment[];
+  [key: string]: unknown;
+}
+
+export interface ServerStatus {
+  num_workers_available: number;
+  [key: string]: unknown;
+}
+
 export interface ConfigOptions {
   server?: string;
   statusServer?: string;
@@ -9,18 +35,12 @@ export interface ConfigOptions {
   onStartTranscription?: (id: string) => void;
   onStopTranscription?: (final: boolean) => void;
   onCommand?: (command: string) => void;
-  onPartialResults?: (data: any) => void;
-  onResults?: (data: any) => void;
-  onServerStatus?: (data: any) => void;
+  onPartialResults?: (data: TranscriptionResponse) => void;
+  onResults?: (data: TranscriptionResponse) => void;
+  onServerStatus?: (data: ServerStatus) => void;
   onEndOfSession?: () => void;
-  onEvent?: (eventType: number, data: any) => void;
+  onEvent?: (eventType: number, data: string | Blob | ArrayBuffer | undefined) => void;
   rafCallback?: (time: number) => void;
-}
-
-export interface SpeechSegment {
-  segment: number;
-  transcript: string;
-  final: boolean;
 }
 
 export interface ServerStatusCode {
@@ -28,7 +48,7 @@ export interface ServerStatusCode {
 }
 
 export interface WebSocketEvent extends Event {
-  data?: any;
+  data?: string | Blob | ArrayBuffer;
 }
 
 export enum TranscriptionEvent {

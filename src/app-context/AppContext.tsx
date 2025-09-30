@@ -9,18 +9,7 @@ import configService from '@/services/configService';
 import textService from '@/services/textService';
 import useNotifications from '@/store/notifications';
 
-export type TranscriptionView = {
-  id: string;
-  content: string;
-  selected: boolean;
-};
-
-export enum TranscriberStatus {
-  IDLE,
-  LISTENING,
-  TRANSCRIBING,
-  STOPPING,
-}
+import { TranscriberStatus, TranscriptionView } from './types';
 
 type TranscriberContextType = {
   lists: TranscriptionView[];
@@ -50,7 +39,7 @@ type TranscriberContextType = {
   selectLast: () => void;
 };
 
-const TranscriberContext = createContext<TranscriberContextType | undefined>(undefined);
+export const TranscriberContext = createContext<TranscriberContextType | undefined>(undefined);
 
 export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [lists, setLists] = useState<TranscriptionView[]>([
@@ -113,7 +102,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
     sessionStorage.removeItem('session_id');
     setUser(null);
     if (sessionId) {
-      let res = await authService.logout(sessionId);
+      const res = await authService.logout(sessionId);
       if (res) {
         console.warn(res);
       }
@@ -127,7 +116,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const sessionId = sessionStorage.getItem('session_id');
     if (sessionId) {
       console.log('call keep alive');
-      let res = await authService.keepAlive(sessionId);
+      const res = await authService.keepAlive(sessionId);
       if (res) {
         console.error(res);
       }
@@ -139,7 +128,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const sessionId = sessionStorage.getItem('session_id');
     if (sessionId) {
       console.debug(`call check auth ${user}`);
-      let res = await authService.sessionOK(sessionId);
+      const res = await authService.sessionOK(sessionId);
       if (res) {
         console.error(res);
         sessionStorage.removeItem('session_id');
@@ -185,14 +174,14 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const clearList = () => {
     console.debug('clearing list');
     const id = ulid();
-    let lists = [{ id: id, content: '', selected: false }];
+    const lists = [{ id: id, content: '', selected: false }];
     setLists(lists);
     saveLists(lists);
   };
 
   const saveLists = async (lists: TranscriptionView[]) => {
     console.log('SAVE LIST');
-    let parts = lists
+    const parts = lists
       .filter((l) => l.content && l.content.trim().length > 0)
       .map((l) => ({ id: l.id, text: l.content }));
 
@@ -221,7 +210,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (!res.parts || res.parts.length === 0) {
           return;
         }
-        let list = res.parts.map((p, index) => ({
+        const list = res.parts.map((p, _index) => ({
           id: p.id || ulid(),
           content: p.text,
           selected: true,

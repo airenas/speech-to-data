@@ -5,7 +5,6 @@ import { RecoilRoot } from 'recoil';
 
 import ThemeProvider from '@/theme/Provider';
 
-import { TranscriberProvider } from './app-context/AppContext';
 import VersionLogger from './version-logger';
 
 const container = document.getElementById('root') as HTMLElement;

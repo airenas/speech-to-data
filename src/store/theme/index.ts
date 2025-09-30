@@ -14,7 +14,9 @@ const themeModeState = atom({
 
 function synchronizeWithLocalStorage({ setSelf, onSet }: AtomEffectParams) {
   const storedTheme = localStorage.getItem('theme-mode');
-  storedTheme && setSelf(storedTheme);
+  if (storedTheme) {
+    setSelf(storedTheme);
+  }
   onSet((value: Themes) => localStorage.setItem('theme-mode', value));
 }
 

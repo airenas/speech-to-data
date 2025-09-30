@@ -2,9 +2,10 @@ import { serverUrl } from '@/config';
 
 import {
   ConfigOptions,
+  ServerStatus,
   ServerStatusCode,
-  SpeechSegment,
   TranscriptionEvent,
+  TranscriptionResponse,
   WebSocketEvent,
 } from './types';
 
@@ -48,35 +49,30 @@ export class Config implements ConfigOptions {
   onEndOfSpeech: () => void = () => {
     console.log('onEndOfSpeech');
   };
-  onPartialResults: (data: any) => void = (data) => {
+  onPartialResults: (data: TranscriptionResponse) => void = (data) => {
     console.log('onPartialResults ' + data);
   };
-  onResults: (data: any) => void = (data) => {
+  onResults: (data: TranscriptionResponse) => void = (data) => {
     console.log('onResults ' + data);
   };
-  onServerStatus: (data: any) => void = (data) => {
+  onServerStatus: (data: ServerStatus) => void = (data) => {
     console.log('onServerStatus ' + data);
   };
   onEndOfSession: () => void = () => {
     console.log('onEndOfSession');
   };
-  onEvent: (eventType: number, data: any) => void = (e, data) => {
+  onEvent: (eventType: number, data: string | Blob | ArrayBuffer | undefined) => void = (
+    e,
+    _data,
+  ) => {
     console.log('onEvent ' + e);
   };
-  rafCallback: (time: number) => void = (time) => {
+  rafCallback: (time: number) => void = (_time) => {
     console.log('rafCallback');
   };
   onCommand?: (command: string) => void = (command) => {
     console.log('onCommand', command);
   };
-}
-
-export class KaldiSpeechSegment implements SpeechSegment {
-  constructor(
-    public segment: number,
-    public transcript: string,
-    public final: boolean,
-  ) {}
 }
 
 export class KaldiRTTranscriber {
@@ -133,7 +129,7 @@ export class KaldiRTTranscriber {
       config.onEvent?.(MSG_WEB_SOCKET, data);
       if (data instanceof Blob) {
         config.onError?.(ERR_SERVER, 'WebSocket: got Blob');
-      } else {
+      } else if (typeof data === 'string') {
         try {
           const res = JSON.parse(data);
           if (res.status === 0) {
@@ -162,16 +158,18 @@ export class KaldiRTTranscriber {
               'Server error: ' + res.status + ': ' + this.getDescription(res.status),
             );
           }
-        } catch (err) {
+        } catch {
           config.onError?.(ERR_SERVER, 'Failed to parse server response');
         }
+      } else {
+        config.onError?.(ERR_SERVER, 'WebSocket: got unknown data type');
       }
     };
 
-    ws.onopen = (e) => {
+    ws.onopen = (_e: Event) => {
       console.debug('on open');
       config.onReadyForSpeech?.();
-      config.onEvent?.(MSG_WEB_SOCKET_OPEN, e);
+      config.onEvent?.(MSG_WEB_SOCKET_OPEN, 'Open event');
     };
 
     ws.onclose = (e) => {
@@ -180,10 +178,9 @@ export class KaldiRTTranscriber {
       config.onEvent?.(MSG_WEB_SOCKET_CLOSE, `${e.code}/${e.reason}/${e.wasClean}`);
     };
 
-    ws.onerror = (e) => {
+    ws.onerror = (_e: Event) => {
       console.log('on error');
-      const data = (e as any).data;
-      config.onError?.(ERR_NETWORK, data);
+      config.onError?.(ERR_NETWORK, 'WebSocket connection error');
     };
 
     console.debug('exit ws create');
@@ -229,7 +226,12 @@ export class KaldiRTTranscriber {
 
     ws.onmessage = (evt: WebSocketEvent) => {
       try {
-        this.config.onServerStatus?.(JSON.parse(evt.data));
+        if (typeof evt.data !== 'string') {
+          console.error('WebSocket: got unknown data type');
+          this.config.onServerStatus?.({ num_workers_available: 0 });
+        } else {
+          this.config.onServerStatus?.(JSON.parse(evt.data));
+        }
       } catch {
         this.config.onServerStatus?.({ num_workers_available: 0 });
       }

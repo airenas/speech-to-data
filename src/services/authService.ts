@@ -48,7 +48,7 @@ const authService = {
         errorMsg: null,
       };
       return res;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error during login:', error);
       const res: LoginResult = {
         user: null,
@@ -74,11 +74,12 @@ const authService = {
 
       if (!response.ok) {
         const body = await response.text();
-        return 'Nepavyko iškviesti atsijunimo metodo';
+        console.error(`can't call logout ${body}`);
+        return 'Nepavyko iškviesti atsijungimo metodo';
       }
       console.debug('Logged out');
       return '';
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error during logout:', error);
       return 'Nepavyko iškviesti atsijunimo metodo';
     }
@@ -138,7 +139,7 @@ const authService = {
 
 export default authService;
 
-function getError(error: string | any): string {
+function getError(error: unknown): string {
   if (error instanceof Error) {
     return getErrorStr(error.message);
   } else if (typeof error === 'string') {

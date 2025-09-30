@@ -43,8 +43,9 @@ function Notifier() {
         });
       }
 
-      // keep track of snackbars that we've displayed
-      options.key && storeDisplayed(options.key);
+      if (options.key) {
+        storeDisplayed(options.key);
+      }
     });
   });
 

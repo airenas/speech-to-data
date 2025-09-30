@@ -5,10 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Button, Checkbox, FormControlLabel, Switch, TextField } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
-import { TranscriberStatus, TranscriptionView, useAppContext } from '@/app-context/AppContext';
+import { useAppContext } from '@/app-context/AppContext';
+import { TranscriberStatus, TranscriptionView } from '@/app-context/types';
 import AudioRecorder from '@/components/Audio/audio-recorder';
 import { Config, KaldiRTTranscriber } from '@/components/Audio/transcriber';
-import { TranscriptionEvent } from '@/components/Audio/types';
+import { ServerStatus, TranscriptionEvent, TranscriptionResponse } from '@/components/Audio/types';
 import Meta from '@/components/Meta';
 import ClearButton from '@/components/clear-button';
 import { FullSizeCenteredFlexBox } from '@/components/styled';
@@ -16,12 +17,10 @@ import { audioUrl, makeLink } from '@/config';
 import configService from '@/services/configService';
 import startSound from '@/sounds/start.mp3';
 import stopSound from '@/sounds/stop.mp3';
-import useNotifications from '@/store/notifications';
 import { TranscriptionResult } from '@/utils/transcription-result';
 
 function Transcriber() {
   const navigate = useNavigate();
-  const [, notificationsActions] = useNotifications();
   const transcriberRef = useRef<KaldiRTTranscriber | null>(null);
   const lastTranscriptionRef = useRef<TranscriptionResult>(new TranscriptionResult());
   const audioRecorderRef = useRef<{ startRecording: () => void; stopRecording: () => void } | null>(
@@ -119,7 +118,7 @@ function Transcriber() {
 
   const onFocus = (index: number, item: TranscriptionView) => {
     console.log('onFocus', index, item);
-    let audioFileUrl = `${audioUrl}/${item.id}`;
+    const audioFileUrl = `${audioUrl}/${item.id}`;
     console.log('Setting audio URL to', audioUrl);
     updateAudio(audioFileUrl);
     if (lists.length - 1 > index) {
@@ -184,10 +183,9 @@ function Transcriber() {
     console.debug('initTranscriber');
 
     const cfg = new Config();
-    cfg.onPartialResults = (data: any) => {
+    cfg.onPartialResults = (data: TranscriptionResponse) => {
       console.debug('onPartialResults', data);
-      const transcript = data.result.hypotheses;
-      // console.log('transcript', transcript);
+      const transcript = data.result?.hypotheses;
       if (transcript) {
         const text = transcript[0].transcript;
         lastTranscriptionRef.current.updatePartial(text);
@@ -196,9 +194,9 @@ function Transcriber() {
       updateRes();
     };
 
-    cfg.onResults = (data: any) => {
+    cfg.onResults = (data: TranscriptionResponse) => {
       console.debug('onResults', data);
-      const transcript = data.result.hypotheses;
+      const transcript = data.result?.hypotheses;
       // console.log('transcript', transcript);
       if (transcript) {
         const text = transcript[0].transcript;
@@ -209,13 +207,9 @@ function Transcriber() {
       updateRes();
     };
 
-    cfg.onEvent = (e: any, data: any) => {
-      // console.log('onEvent ' + e);
-    };
-
-    cfg.onServerStatus = (data: any) => {
+    cfg.onServerStatus = (data: ServerStatus) => {
       setWorkers(data.num_workers_available);
-      console.debug('onStatusEvent ' + workers);
+      console.debug('onStatusEvent ' + data.num_workers_available);
     };
 
     cfg.onReadyForSpeech = () => {
@@ -283,9 +277,9 @@ function Transcriber() {
       selectLast();
     };
 
-    cfg.onError = (et: number, data: any) => {
+    cfg.onError = (et: number, data: string) => {
       console.log('onError', et, data);
-      showError('Atpažintubo klaida');
+      showError('Atpažintuvo klaida');
       if (!transcriberRef.current) {
         return;
       }
@@ -314,7 +308,7 @@ function Transcriber() {
     return new KaldiRTTranscriber(cfg);
   };
 
-  const selectedItem = lists.find((list) => list.selected);
+  // const selectedItem = lists.find((list) => list.selected);
 
   useEffect(() => {
     if (!user) {
@@ -365,7 +359,7 @@ function Transcriber() {
       lastItemRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
       // setScrollBottom(false);
     }
-  }, [lists]);
+  }, [lists, scrollBottom]);
 
   useEffect(() => {
     console.debug('Starting transcriber');
@@ -419,7 +413,7 @@ function Transcriber() {
     {
       target: '#record-button',
       content:
-        'Spauskite čia, kad pradėtumėte arba sustabdytumėte įrašymą. Skliausteliuose esantis skaičius rodo laisvas įrašymo sesijas. Jei nėra laisvų sesijų, irašyti negalėsite',
+        'Spauskite čia, kad pradėtumėte arba sustabdytumėte įrašymą. Skliausteliuose esantis skaičius rodo laisvas įrašymo sesijas. Jei nėra laisvų sesijų, įrašyti negalėsite',
     },
     {
       target: '#transcription-area',
@@ -427,18 +421,31 @@ function Transcriber() {
     },
     {
       target: '#audio-player',
-      content: 'Galite perklausyti diktavimo sesiją, kiekvienam laukeliui atskirai',
+      content: 'Galite perklausyti diktavimo sesiją kiekvienam laukeliui',
     },
     {
       target: '#auto-button',
-      content:
-        'Automatinis valdymas balsu. Įjungia klausymo režimą. Sistema klausosi mikrofono ir pradeda įrašymą ištarus komandą "pradėk rašyti". Baigia įrašymą ištarus komandą "baik rašyti". Sustabdo klausymo režimą ištarus komandą "baik klaysyti".',
+      content: (
+        <span>
+          Automatinis valdymas balsu. Įjungia klausymo režimą. Sistema:
+          <li>
+            pradeda įrašymą ištarus komandą <strong>pradėk rašyti</strong>,
+          </li>
+          <li>
+            baigia įrašymą ištarus komandą <strong>baik rašyti</strong>,
+          </li>
+          <li>
+            sustabdo klausymo režimą ištarus komandą <strong>baik klausyti</strong>
+          </li>
+        </span>
+      ),
     },
     { target: '#select-all-button', content: 'Pažymi visus laukelius' },
     { target: '#copy-button', content: 'Nukopijuoja pažymėtų laukelių tekstą į iškarpinę' },
     {
       target: '#clear-button',
-      content: 'Ištrina visus diktavimo rezultatus. Paspaudus turite 5s atšaukti ištrynimo komandą',
+      content:
+        'Ištrina visus diktavimo rezultatus. Paspaudus galite per 5s atšaukti ištrynimo komandą',
     },
     {
       target: '#logout-button',
@@ -449,8 +456,8 @@ function Transcriber() {
             Jei netyčia uždarėte langą ar atsijungėte nuo sistemos, nenusikopijavę transkribuoto
             teksto
           </strong>{' '}
-          - nepergyvenkite, sistema atsimena paskutinius Jūsų įrašus 6h (arba kol neišvalote
-          diktavimo lango). Tiesiog prisijunkite iš naujo.
+          - nepergyvenkite. Sistema atsimena paskutinius Jūsų įrašus 6h (arba kol neišvalote
+          diktavimo lango)
         </span>
       ),
     },
@@ -462,7 +469,6 @@ function Transcriber() {
     console.log('tourStatusChanged', status);
     if (status === 'finished' || status === 'skipped') {
       (async () => {
-        ``;
         try {
           await configService.save({ skipTour: true });
           console.log('skip tour saved');
@@ -682,7 +688,7 @@ function Transcriber() {
             },
           }}
           callback={(data) => {
-            const { status, action } = data;
+            const { status } = data;
             tourStatusChanged(status);
           }}
         />

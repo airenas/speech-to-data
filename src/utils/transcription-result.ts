@@ -1,13 +1,11 @@
-class TranscriptionSegment {
-  transcript: string;
-  final: boolean;
-  segment: number;
+import { TranscriptionSegment } from '@/components/Audio/types';
 
-  constructor(segment: number, transcript: string, final: boolean) {
-    this.segment = segment;
-    this.transcript = transcript;
-    this.final = final;
-  }
+export class ListTranscriptionSegment implements TranscriptionSegment {
+  constructor(
+    public segment: number,
+    public transcript: string,
+    public final: boolean,
+  ) {}
 }
 
 export class TranscriptionResult {
@@ -20,7 +18,7 @@ export class TranscriptionResult {
   }
 
   addSegment(text: string, id: number) {
-    this.segments.push(new TranscriptionSegment(id, text, true));
+    this.segments.push(new ListTranscriptionSegment(id, text, true));
   }
 
   updatePartial(text: string) {
@@ -29,7 +27,7 @@ export class TranscriptionResult {
 
   getFullTranscription(): string {
     let text = '';
-    this.segments.forEach((segment, index) => {
+    this.segments.forEach((segment, _) => {
       const s = segment.transcript;
       let so = s;
       if (!(s.length > 1 && s.charAt(s.length - 1) === '\n')) {
@@ -43,7 +41,7 @@ export class TranscriptionResult {
     return text;
   }
 
-  updateSegments(segments: TranscriptionSegment[]) {
+  updateSegments(segments?: TranscriptionSegment[]) {
     if (segments !== null && segments !== undefined && segments.length > 0) {
       for (const segment of segments) {
         let found = false;

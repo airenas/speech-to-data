@@ -5,7 +5,8 @@ import { useTheme } from '@mui/material/styles';
 
 import { nanoid } from 'ai';
 
-import { TranscriberStatus, useAppContext } from '@/app-context/AppContext';
+import { useAppContext } from '@/app-context/AppContext';
+import { TranscriberStatus } from '@/app-context/types';
 import useNotifications from '@/store/notifications';
 
 import AudioResampler from './audio-resampler';

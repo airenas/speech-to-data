@@ -7,7 +7,7 @@ export const useKeepAlivePing = () => {
   const { keepAlive } = useAppContext();
 
   useEffect(() => {
-    let pingTimeout: any;
+    let pingTimeout: NodeJS.Timeout | undefined;
     const pingInterval = 60000;
 
     const sendKeepAlivePing = async () => {
@@ -22,7 +22,7 @@ export const useKeepAlivePing = () => {
         currentTime - lastCallTimeRef.current > pingInterval
       ) {
         lastCallTimeRef.current = currentTime;
-        setTimeout(sendKeepAlivePing, 500);
+        pingTimeout = setTimeout(sendKeepAlivePing, 500);
       }
     };
 
@@ -44,5 +44,5 @@ export const useKeepAlivePing = () => {
       window.removeEventListener('mousedown', resetPingTimer);
       window.removeEventListener('input', resetPingTimer);
     };
-  }, []);
+  }, [keepAlive]);
 };

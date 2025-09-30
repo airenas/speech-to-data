@@ -2,7 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 
-import { checkLogged } from '@/hooks/checkLogged';
+import { useCheckLogged } from '@/hooks/checkLogged';
 import { useKeepAlivePing } from '@/hooks/keepAlive';
 
 import routes from '..';
@@ -10,7 +10,7 @@ import { getPageHeight } from './utils';
 
 function Pages() {
   useKeepAlivePing();
-  checkLogged();
+  useCheckLogged();
   return (
     <Box sx={{ height: (theme) => getPageHeight(theme) }}>
       <Routes>
