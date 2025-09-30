@@ -30,7 +30,6 @@ const textService = {
         const responseText = await response.text();
         throw new Error(`Unable to get texts, code ${response.status}: ${responseText}`);
       }
-      console.log('called');
       const data = await response.json();
       return data;
     } catch (error) {
@@ -42,7 +41,7 @@ const textService = {
     try {
       const sessionId = sessionStorage.getItem('session_id');
       if (!sessionId) {
-        throw new Error('No session ID found in sessionStorage');
+        return 'no session';
       }
       console.debug(`save texts ${textUrl}`);
       const response = await fetch(textUrl, {
@@ -58,7 +57,6 @@ const textService = {
         const responseText = await response.text();
         throw new Error(`Unable to save texts, code ${response.status}: ${responseText}`);
       }
-      console.log('called');
       return 'ok';
     } catch (error) {
       throw new Error(`Unable to save texts: ${error}`);

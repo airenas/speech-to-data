@@ -167,7 +167,6 @@ const AudioRecorder = forwardRef<
   };
 
   useEffect(() => {
-    console.log('init audio element');
     return () => {
       console.log('drop audio element');
       stopRecording();
@@ -188,12 +187,11 @@ const AudioRecorder = forwardRef<
   };
 
   const stopRecording = () => {
-    console.log(`stopped ${isStoppedRef.current}`);
+    console.debug(`stopped ${isStoppedRef.current}`);
     if (isStoppedRef.current) {
       return;
     }
     isStoppedRef.current = true;
-    console.log(`stopped ${isStoppedRef.current}`);
     console.debug(`stop ${rec_id}`);
     if (animationIdRef.current) {
       cancelAnimationFrame(animationIdRef.current);

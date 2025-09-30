@@ -218,7 +218,7 @@ export class KaldiRTTranscriber {
   }
 
   private createStatusWebSocket() {
-    console.log('createStatusWebSocket');
+    console.log(`createStatusWebSocket`);
 
     const wsUrl = addAuth(this.config.statusServer || '');
 
@@ -227,12 +227,12 @@ export class KaldiRTTranscriber {
     ws.onmessage = (evt: WebSocketEvent) => {
       try {
         if (typeof evt.data !== 'string') {
-          console.error('WebSocket: got unknown data type');
           this.config.onServerStatus?.({ num_workers_available: 0 });
         } else {
           this.config.onServerStatus?.(JSON.parse(evt.data));
         }
-      } catch {
+      } catch (error: unknown) {
+        console.error('WebSocket: status parse error', error);
         this.config.onServerStatus?.({ num_workers_available: 0 });
       }
     };
@@ -249,7 +249,11 @@ export class KaldiRTTranscriber {
       }
     };
 
-    ws.onerror = () => {
+    ws.onerror = (error) => {
+      if (this.isStopped) {
+        return;
+      }
+      console.error(`WebSocket (${this.isStopped}): status connection error `, error);
       this.config.onServerStatus?.({ num_workers_available: 0 });
     };
     return ws;

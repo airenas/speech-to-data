@@ -104,7 +104,6 @@ const authService = {
           return getError(responseText);
         }
       }
-      console.log('called');
     } catch (error) {
       console.error('Error during keep-alive:', error);
     }
@@ -129,7 +128,6 @@ const authService = {
           return getError(responseText);
         }
       }
-      console.log('called');
     } catch (error) {
       console.error('Error during sessionOK:', error);
     }

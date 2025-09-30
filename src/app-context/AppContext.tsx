@@ -180,13 +180,11 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const saveLists = async (lists: TranscriptionView[]) => {
-    console.log('SAVE LIST');
     const parts = lists
       .filter((l) => l.content && l.content.trim().length > 0)
       .map((l) => ({ id: l.id, text: l.content }));
 
     const current = JSON.stringify(parts);
-    console.log(`Current: ${current}, Previous: ${prevListsRef.current}`);
     if (current !== prevListsRef.current) {
       try {
         await textService.save({ parts: parts });
@@ -200,7 +198,6 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   useEffect(() => {
     const initUser = async () => {
-      console.log('INIT USER', user);
       if (!user) {
         return;
       }

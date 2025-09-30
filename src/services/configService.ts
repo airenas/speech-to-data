@@ -25,7 +25,6 @@ const configService = {
         const responseText = await response.text();
         throw new Error(`Unable to get config, code ${response.status}: ${responseText}`);
       }
-      console.log('called');
       const data = await response.json();
       return data;
     } catch (error) {
@@ -38,7 +37,7 @@ const configService = {
     try {
       const sessionId = sessionStorage.getItem('session_id');
       if (!sessionId) {
-        throw new Error('No session ID found in sessionStorage');
+        return 'no session';
       }
       console.debug(`save cfg ${configUrl}`);
       const response = await fetch(configUrl, {
@@ -54,7 +53,6 @@ const configService = {
         const responseText = await response.text();
         throw new Error(`Unable to save config, code ${response.status}: ${responseText}`);
       }
-      console.log('called');
       return 'ok';
     } catch (error) {
       console.error('Error during save config:', error);

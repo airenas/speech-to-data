@@ -107,10 +107,10 @@ function Transcriber() {
     }
   }, [isAuto]);
 
-  const updateAudio = (audioUrl: string) => {
-    console.log('updateAudio', audioUrl, transcriberStatus);
+  const updateAudio = (audioLocalUrl: string) => {
+    console.debug('updateAudio', audioLocalUrl, transcriberStatus);
     if (transcriberStatusRef.current === TranscriberStatus.IDLE) {
-      setAudioFileUrl(audioUrl);
+      setAudioFileUrl(audioLocalUrl);
     } else {
       setAudioFileUrl(null);
     }
@@ -208,8 +208,8 @@ function Transcriber() {
     };
 
     cfg.onServerStatus = (data: ServerStatus) => {
-      setWorkers(data.num_workers_available);
       console.debug('onStatusEvent ' + data.num_workers_available);
+      setWorkers(data.num_workers_available);
     };
 
     cfg.onReadyForSpeech = () => {
@@ -320,10 +320,8 @@ function Transcriber() {
   }, [user]);
 
   useEffect(() => {
-    // console.log('Selected audio URL changed to:', audioUrl);
     console.debug('Selected audio URL changed to:', audioUrl);
     if (audioUrl && audioRef.current) {
-      console.debug('reloading:', audioUrl);
       audioRef.current.load();
     } else {
       console.debug('skip audio URL load');
@@ -354,7 +352,7 @@ function Transcriber() {
 
   useEffect(() => {
     listsRef.current = lists;
-    console.log('Lists updated:', lists, scrollBottom, lastItemRef.current);
+    // console.debug('Lists updated:', lists, scrollBottom, lastItemRef.current);
     if (lastItemRef.current && scrollBottom) {
       lastItemRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
       // setScrollBottom(false);
