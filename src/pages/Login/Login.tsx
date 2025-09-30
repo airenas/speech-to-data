@@ -1,11 +1,13 @@
-import { useAppContext } from '@/app-context/AppContext';
-import Meta from '@/components/Meta';
-import { FullSizeCenteredFlexBox } from '@/components/styled';
+import { useState } from 'react';
+
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { IconButton, InputAdornment } from '@mui/material';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import { useState } from 'react';
+
+import { useAppContext } from '@/app-context/AppContext';
+import Meta from '@/components/Meta';
+import { FullSizeCenteredFlexBox } from '@/components/styled';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -18,7 +20,7 @@ function Login() {
     login(username, password);
   };
 
-  const handleKeyDown = (event: { key: string; preventDefault: () => void; }) => {
+  const handleKeyDown = (event: { key: string; preventDefault: () => void }) => {
     if (event.key === 'Enter' && canLogin()) {
       event.preventDefault();
       handleLogin();
@@ -101,4 +103,3 @@ function Login() {
 }
 
 export default Login;
-

@@ -1,170 +1,168 @@
-import { authUrl } from "@/config";
+import { authUrl } from '@/config';
 
 export type User = {
-    name: string;
-    skipTour?: boolean;
+  name: string;
+  skipTour?: boolean;
 };
 
 export type LoginResult = {
-    user: User | null;
-    sessionId: string | null;
-    errorMsg: string | null;
+  user: User | null;
+  sessionId: string | null;
+  errorMsg: string | null;
 };
 
 const timeout = 5000;
 
 const authService = {
-    async login(username: string, password: string): Promise<LoginResult> {
-        try {
-            const loginUrl = authUrl + '/login'
-            console.debug(`loginUrl ${loginUrl}`)
-            const response = await fetch(loginUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ user: username, pass: password },
-                ),
-                signal: AbortSignal.timeout(timeout)
-            });
+  async login(username: string, password: string): Promise<LoginResult> {
+    try {
+      const loginUrl = authUrl + '/login';
+      console.debug(`loginUrl ${loginUrl}`);
+      const response = await fetch(loginUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user: username, pass: password }),
+        signal: AbortSignal.timeout(timeout),
+      });
 
-            if (!response.ok) {
-                const body = await response.text();
-                const res: LoginResult = {
-                    user: null,
-                    sessionId: null,
-                    errorMsg: getError(body)
-                };
-                return res;
-            }
+      if (!response.ok) {
+        const body = await response.text();
+        const res: LoginResult = {
+          user: null,
+          sessionId: null,
+          errorMsg: getError(body),
+        };
+        return res;
+      }
 
-            const data = await response.json();
+      const data = await response.json();
 
-            const newUser: User = {
-                name: data.user.name,
-            };
-            const res: LoginResult = {
-                user: newUser,
-                sessionId: data.session_id,
-                errorMsg: null
-            };
-            return res;
-        } catch (error: any) {
-            console.error('Error during login:', error);
-            const res: LoginResult = {
-                user: null,
-                sessionId: null,
-                errorMsg: getError(error)
-            };
-            return res;
-        }
-    },
-
-    async logout(sessionId: string): Promise<string> {
-        const logoutUrl = authUrl + '/logout'
-        console.debug(`logoutUrl ${logoutUrl}`)
-
-        try {
-            const response = await fetch(logoutUrl, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `bearer ${sessionId}`,
-                },
-                signal: AbortSignal.timeout(timeout)
-            });
-
-            if (!response.ok) {
-                const body = await response.text();
-                return "Nepavyko iškviesti atsijunimo metodo"
-            }
-            console.debug('Logged out');
-            return ""
-        }
-        catch (error: any) {
-            console.error('Error during logout:', error);
-            return "Nepavyko iškviesti atsijunimo metodo";
-        }
-    },
-
-    // You can add more methods here related to authentication, such as:
-    async keepAlive(sessionId: string): Promise<string> {
-        try {
-            const keepAliveUrl = authUrl + '/keep-alive'
-            console.debug(`keepAliveUrl ${keepAliveUrl}`)
-            const response = await fetch(keepAliveUrl, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `bearer ${sessionId}`,
-                },
-                signal: AbortSignal.timeout(timeout)
-            });
-            if (!response.ok) {
-                const responseText = await response.text();
-                console.error(`can't call keep-alive ${responseText}`);
-                if (response.status == 401) {
-                    return getError(responseText);
-                }
-            }
-            console.log('called');
-        } catch (error) {
-            console.error('Error during keep-alive:', error);
-        }
-        return ""
-    },
-
-    async sessionOK(sessionId: string): Promise<string> {
-        try {
-            const keepAliveUrl = authUrl
-            console.debug(`sessionOK ${keepAliveUrl}`)
-            const response = await fetch(keepAliveUrl, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `bearer ${sessionId}`,
-                },
-                signal: AbortSignal.timeout(timeout)
-            });
-            if (!response.ok) {
-                const responseText = await response.text();
-                console.error(`can't call sessionOK ${responseText}`);
-                if (response.status == 401) {
-                    return getError(responseText);
-                }
-            }
-            console.log('called');
-        } catch (error) {
-            console.error('Error during sessionOK:', error);
-        }
-        return ""
+      const newUser: User = {
+        name: data.user.name,
+      };
+      const res: LoginResult = {
+        user: newUser,
+        sessionId: data.session_id,
+        errorMsg: null,
+      };
+      return res;
+    } catch (error: any) {
+      console.error('Error during login:', error);
+      const res: LoginResult = {
+        user: null,
+        sessionId: null,
+        errorMsg: getError(error),
+      };
+      return res;
     }
-}
+  },
+
+  async logout(sessionId: string): Promise<string> {
+    const logoutUrl = authUrl + '/logout';
+    console.debug(`logoutUrl ${logoutUrl}`);
+
+    try {
+      const response = await fetch(logoutUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `bearer ${sessionId}`,
+        },
+        signal: AbortSignal.timeout(timeout),
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        return 'Nepavyko iškviesti atsijunimo metodo';
+      }
+      console.debug('Logged out');
+      return '';
+    } catch (error: any) {
+      console.error('Error during logout:', error);
+      return 'Nepavyko iškviesti atsijunimo metodo';
+    }
+  },
+
+  // You can add more methods here related to authentication, such as:
+  async keepAlive(sessionId: string): Promise<string> {
+    try {
+      const keepAliveUrl = authUrl + '/keep-alive';
+      console.debug(`keepAliveUrl ${keepAliveUrl}`);
+      const response = await fetch(keepAliveUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `bearer ${sessionId}`,
+        },
+        signal: AbortSignal.timeout(timeout),
+      });
+      if (!response.ok) {
+        const responseText = await response.text();
+        console.error(`can't call keep-alive ${responseText}`);
+        if (response.status == 401) {
+          return getError(responseText);
+        }
+      }
+      console.log('called');
+    } catch (error) {
+      console.error('Error during keep-alive:', error);
+    }
+    return '';
+  },
+
+  async sessionOK(sessionId: string): Promise<string> {
+    try {
+      const keepAliveUrl = authUrl;
+      console.debug(`sessionOK ${keepAliveUrl}`);
+      const response = await fetch(keepAliveUrl, {
+        method: 'GET',
+        headers: {
+          Authorization: `bearer ${sessionId}`,
+        },
+        signal: AbortSignal.timeout(timeout),
+      });
+      if (!response.ok) {
+        const responseText = await response.text();
+        console.error(`can't call sessionOK ${responseText}`);
+        if (response.status == 401) {
+          return getError(responseText);
+        }
+      }
+      console.log('called');
+    } catch (error) {
+      console.error('Error during sessionOK:', error);
+    }
+    return '';
+  },
+};
 
 export default authService;
 
 function getError(error: string | any): string {
-    if (error instanceof Error) {
-        return getErrorStr(error.message);
-    } else if (typeof error === 'string') {
-        return getErrorStr(error);
-    } else {
-        return getErrorStr('An unknown error occurred');;
-    }
+  if (error instanceof Error) {
+    return getErrorStr(error.message);
+  } else if (typeof error === 'string') {
+    return getErrorStr(error);
+  } else {
+    return getErrorStr('An unknown error occurred');
+  }
 }
 
 function getErrorStr(error: string): string {
-    if (error.includes("Wrong user or password")) {
-        return "Neteisingas vartotojas arba slaptažodis"
-    }
-    if (error.includes("Password expired")) {
-        return "Slaptažodis negalioja"
-    }
-    if (error.includes("Session expired")) {
-        return "Neprisijungta. Prisijunkite iš naujo"
-    }
-    if (error.includes("No session")) {
-        return "Neprisijungta. Prisijunkite"
-    }
-    if (error.includes("No access")) {
-        return "Nesuteiktas leidimas prisijungti"
-    }
-    return "Nepavyko prisijungti";
+  if (error.includes('Wrong user or password')) {
+    return 'Neteisingas vartotojas arba slaptažodis';
+  }
+  if (error.includes('Password expired')) {
+    return 'Slaptažodis negalioja';
+  }
+  if (error.includes('Session expired')) {
+    return 'Neprisijungta. Prisijunkite iš naujo';
+  }
+  if (error.includes('No session')) {
+    return 'Neprisijungta. Prisijunkite';
+  }
+  if (error.includes('No access')) {
+    return 'Nesuteiktas leidimas prisijungti';
+  }
+  return 'Nepavyko prisijungti';
 }

@@ -1,5 +1,10 @@
+import { useLocation, useNavigate } from 'react-router-dom';
+
 import ThemeIcon from '@mui/icons-material/InvertColors';
+import LoginIcon from '@mui/icons-material/Login';
+import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
+import { Typography } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
@@ -12,10 +17,6 @@ import { FlexBox } from '@/components/styled';
 import { makeLink, title } from '@/config';
 import useSidebar from '@/store/sidebar';
 import useTheme from '@/store/theme';
-import LoginIcon from '@mui/icons-material/Login';
-import LogoutIcon from '@mui/icons-material/Logout';
-import { Typography } from '@mui/material';
-import { useLocation, useNavigate } from 'react-router-dom';
 
 function Header() {
   const [, sidebarActions] = useSidebar();
@@ -23,7 +24,7 @@ function Header() {
   const navigate = useNavigate();
   const { user, logout } = useAppContext();
   const location = useLocation();
-  const isLoginPage = location.pathname === makeLink('/login'); 
+  const isLoginPage = location.pathname === makeLink('/login');
 
   const handleLogout = async () => {
     logout();
@@ -58,38 +59,50 @@ function Header() {
             </Typography>
           </FlexBox>
           <FlexBox>
-            {!user && !isLoginPage && (<>
-              <Tooltip title="Prisijungti" arrow>
-                <IconButton
-                  color="info"
-                  edge="end"
-                  size="large"
-                  onClick={handleLogin}
-                  data-pw="login"
-                >
-                  <LoginIcon />
-                </IconButton>
-              </Tooltip>
-            </>
+            {!user && !isLoginPage && (
+              <>
+                <Tooltip title="Prisijungti" arrow>
+                  <IconButton
+                    color="info"
+                    edge="end"
+                    size="large"
+                    onClick={handleLogin}
+                    data-pw="login"
+                  >
+                    <LoginIcon />
+                  </IconButton>
+                </Tooltip>
+              </>
             )}
-            {user && (<Box display="flex" alignItems="center">
-              <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
-                <span style={{ fontStyle: 'italic', fontWeight: 'lighter', color: 'inherit', fontSize: "0.8em", marginRight: '10px' }}>Sveiki</span> 
-                <span style={{ fontWeight: 'bold', color: 'inherit' }}>{user.name}</span> 
-              </Typography>
-              <Tooltip title="Atsijungti" arrow>
-                <IconButton
-                  color="error"
-                  edge="end"
-                  size="large"
-                  onClick={handleLogout}
-                  data-pw="logout"
-                  id = "logout-button"
-                >
-                  <LogoutIcon />
-                </IconButton>
-              </Tooltip>
-            </Box>
+            {user && (
+              <Box display="flex" alignItems="center">
+                <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                  <span
+                    style={{
+                      fontStyle: 'italic',
+                      fontWeight: 'lighter',
+                      color: 'inherit',
+                      fontSize: '0.8em',
+                      marginRight: '10px',
+                    }}
+                  >
+                    Sveiki
+                  </span>
+                  <span style={{ fontWeight: 'bold', color: 'inherit' }}>{user.name}</span>
+                </Typography>
+                <Tooltip title="Atsijungti" arrow>
+                  <IconButton
+                    color="error"
+                    edge="end"
+                    size="large"
+                    onClick={handleLogout}
+                    data-pw="logout"
+                    id="logout-button"
+                  >
+                    <LogoutIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             )}
             <Divider orientation="vertical" flexItem />
             <Tooltip title="Pakeisti temą" arrow>

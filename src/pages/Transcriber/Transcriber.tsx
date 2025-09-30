@@ -1,29 +1,32 @@
-import { TranscriberStatus, TranscriptionView, useAppContext } from '@/app-context/AppContext';
-import AudioRecorder from '@/components/Audio/audio-recorder';
-import { Config, KaldiRTTranscriber } from '@/components/Audio/transcriber';
-import { TranscriptionEvent } from '@/components/Audio/types';
-import ClearButton from '@/components/clear-button';
-import Meta from '@/components/Meta';
-import { FullSizeCenteredFlexBox } from '@/components/styled';
-import { audioUrl, makeLink } from '@/config';
-import configService from '@/services/configService';
-import startSound from "@/sounds/start.mp3";
-import stopSound from "@/sounds/stop.mp3";
-import useNotifications from '@/store/notifications';
-import { TranscriptionResult } from '@/utils/transcription-result';
-import { Box, Button, Checkbox, FormControlLabel, Switch, TextField } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import { useEffect, useRef, useState } from 'react';
 import Joyride from 'react-joyride';
 import { useNavigate } from 'react-router-dom';
 
+import { Box, Button, Checkbox, FormControlLabel, Switch, TextField } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+
+import { TranscriberStatus, TranscriptionView, useAppContext } from '@/app-context/AppContext';
+import AudioRecorder from '@/components/Audio/audio-recorder';
+import { Config, KaldiRTTranscriber } from '@/components/Audio/transcriber';
+import { TranscriptionEvent } from '@/components/Audio/types';
+import Meta from '@/components/Meta';
+import ClearButton from '@/components/clear-button';
+import { FullSizeCenteredFlexBox } from '@/components/styled';
+import { audioUrl, makeLink } from '@/config';
+import configService from '@/services/configService';
+import startSound from '@/sounds/start.mp3';
+import stopSound from '@/sounds/stop.mp3';
+import useNotifications from '@/store/notifications';
+import { TranscriptionResult } from '@/utils/transcription-result';
 
 function Transcriber() {
   const navigate = useNavigate();
   const [, notificationsActions] = useNotifications();
   const transcriberRef = useRef<KaldiRTTranscriber | null>(null);
   const lastTranscriptionRef = useRef<TranscriptionResult>(new TranscriptionResult());
-  const audioRecorderRef = useRef<{ startRecording: () => void; stopRecording: () => void } | null>(null);
+  const audioRecorderRef = useRef<{ startRecording: () => void; stopRecording: () => void } | null>(
+    null,
+  );
   const audioRef = useRef<HTMLAudioElement>(null);
   const [audioFileUrl, setAudioFileUrl] = useState<string | null>(null);
   const lastItemRef = useRef<HTMLDivElement | null>(null);
@@ -34,7 +37,22 @@ function Transcriber() {
   const startAudioRef = useRef<HTMLAudioElement | null>(null);
   const stopAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const { lists, setLists, workers, setWorkers, isRecording, transcriberStatus, setTranscriberStatus, user, showError, showInfo, clearList, isAuto, setAuto, selectLast } = useAppContext();
+  const {
+    lists,
+    setLists,
+    workers,
+    setWorkers,
+    isRecording,
+    transcriberStatus,
+    setTranscriberStatus,
+    user,
+    showError,
+    showInfo,
+    clearList,
+    isAuto,
+    setAuto,
+    selectLast,
+  } = useAppContext();
   const isAutoRef = useRef(isAuto);
   const transcriberStatusRef = useRef(transcriberStatus);
   const listsRef = useRef<TranscriptionView[]>(lists);
@@ -66,15 +84,11 @@ function Transcriber() {
 
   const selectAll = () => {
     const listCopy = listsRef.current;
-    setLists(listCopy.map(list => ({ ...list, selected: true })));
+    setLists(listCopy.map((list) => ({ ...list, selected: true })));
   };
 
   const updateListContent = (id: string, newContent: string) => {
-    setLists(
-      lists.map(list =>
-        list.id === id ? { ...list, content: newContent } : list
-      )
-    );
+    setLists(lists.map((list) => (list.id === id ? { ...list, content: newContent } : list)));
   };
 
   useEffect(() => {
@@ -145,7 +159,10 @@ function Transcriber() {
     const text = lastTranscriptionRef.current.getFullTranscription();
 
     console.log('transcriberStatus', transcriberStatusRef.current);
-    if (transcriberStatusRef.current !== TranscriberStatus.TRANSCRIBING && transcriberStatusRef.current !== TranscriberStatus.STOPPING) {
+    if (
+      transcriberStatusRef.current !== TranscriberStatus.TRANSCRIBING &&
+      transcriberStatusRef.current !== TranscriberStatus.STOPPING
+    ) {
       return;
     }
 
@@ -268,7 +285,7 @@ function Transcriber() {
 
     cfg.onError = (et: number, data: any) => {
       console.log('onError', et, data);
-      showError("Atpažintubo klaida");
+      showError('Atpažintubo klaida');
       if (!transcriberRef.current) {
         return;
       }
@@ -295,10 +312,9 @@ function Transcriber() {
     };
 
     return new KaldiRTTranscriber(cfg);
+  };
 
-  }
-
-  const selectedItem = lists.find(list => list.selected);
+  const selectedItem = lists.find((list) => list.selected);
 
   useEffect(() => {
     if (!user) {
@@ -326,15 +342,19 @@ function Transcriber() {
     if (transcriberStatus === TranscriberStatus.TRANSCRIBING) {
       startAudioRef.current?.play();
     }
-    if (prev === TranscriberStatus.TRANSCRIBING &&
-      (transcriberStatus === TranscriberStatus.IDLE || transcriberStatus === TranscriberStatus.LISTENING || transcriberStatus === TranscriberStatus.STOPPING)) {
+    if (
+      prev === TranscriberStatus.TRANSCRIBING &&
+      (transcriberStatus === TranscriberStatus.IDLE ||
+        transcriberStatus === TranscriberStatus.LISTENING ||
+        transcriberStatus === TranscriberStatus.STOPPING)
+    ) {
       stopAudioRef.current?.play();
     }
     if (transcriberStatus !== TranscriberStatus.IDLE) {
       if (audioRef.current) {
         audioRef.current.pause();
       }
-      setAudioFileUrl("");
+      setAudioFileUrl('');
     }
   }, [transcriberStatus]);
 
@@ -364,67 +384,92 @@ function Transcriber() {
     };
   }, []);
 
-  const isAnyNotSelected = lists.some(list => !list.selected);
+  const isAnyNotSelected = lists.some((list) => !list.selected);
 
   const copyToClipboard = () => {
-    const allText = lists.filter(list => list.selected).map(list => list.content).join('\n');
+    const allText = lists
+      .filter((list) => list.selected)
+      .map((list) => list.content)
+      .join('\n');
 
-    navigator.clipboard.writeText(allText)
+    navigator.clipboard
+      .writeText(allText)
       .then(() => {
         showInfo('Nukopijuota');
       })
-      .catch(err => {
+      .catch((err) => {
         showError('Nepavyko nukopijuoti');
         console.error('Failed to copy: ', err);
       });
   };
 
-
   const toggleSelect = (id: string) => {
-    setLists(lists.map(list => (list.id === id ? { ...list, selected: !list.selected } : list)));
+    setLists(lists.map((list) => (list.id === id ? { ...list, selected: !list.selected } : list)));
   };
 
-  const isAnyTextPresent = lists.some(list => list.content.trim() !== '');
+  const isAnyTextPresent = lists.some((list) => list.content.trim() !== '');
 
-  const isAnySelectedText = lists.filter(list => list.selected).some(list => list.content.trim() !== '');
+  const isAnySelectedText = lists
+    .filter((list) => list.selected)
+    .some((list) => list.content.trim() !== '');
 
   const [runTour, setRunTour] = useState(false);
 
   const introSteps = [
-    { target: "#record-button", content: "Spauskite čia, kad pradėtumėte arba sustabdytumėte įrašymą. Skliausteliuose esantis skaičius rodo laisvas įrašymo sesijas. Jei nėra laisvų sesijų, irašyti negalėsite" },
-    { target: "#transcription-area", content: "Diktavimo rezultatai. Tekstus taip pat galite redaguoti." },
-    { target: "#audio-player", content: "Galite perklausyti diktavimo sesiją, kiekvienam laukeliui atskirai" },
-    { target: "#auto-button", content: "Automatinis valdymas balsu. Įjungia klausymo režimą. Sistema klausosi mikrofono ir pradeda įrašymą ištarus komandą \"pradėk rašyti\". Baigia įrašymą ištarus komandą \"baik rašyti\". Sustabdo klausymo režimą ištarus komandą \"baik klaysyti\"." },
-    { target: "#select-all-button", content: "Pažymi visus laukelius" },
-    { target: "#copy-button", content: "Nukopijuoja pažymėtų laukelių tekstą į iškarpinę" },
-    { target: "#clear-button", content: "Ištrina visus diktavimo rezultatus. Paspaudus turite 5s atšaukti ištrynimo komandą" },
     {
-      target: "#logout-button", content: (
+      target: '#record-button',
+      content:
+        'Spauskite čia, kad pradėtumėte arba sustabdytumėte įrašymą. Skliausteliuose esantis skaičius rodo laisvas įrašymo sesijas. Jei nėra laisvų sesijų, irašyti negalėsite',
+    },
+    {
+      target: '#transcription-area',
+      content: 'Diktavimo rezultatai. Tekstus taip pat galite redaguoti.',
+    },
+    {
+      target: '#audio-player',
+      content: 'Galite perklausyti diktavimo sesiją, kiekvienam laukeliui atskirai',
+    },
+    {
+      target: '#auto-button',
+      content:
+        'Automatinis valdymas balsu. Įjungia klausymo režimą. Sistema klausosi mikrofono ir pradeda įrašymą ištarus komandą "pradėk rašyti". Baigia įrašymą ištarus komandą "baik rašyti". Sustabdo klausymo režimą ištarus komandą "baik klaysyti".',
+    },
+    { target: '#select-all-button', content: 'Pažymi visus laukelius' },
+    { target: '#copy-button', content: 'Nukopijuoja pažymėtų laukelių tekstą į iškarpinę' },
+    {
+      target: '#clear-button',
+      content: 'Ištrina visus diktavimo rezultatus. Paspaudus turite 5s atšaukti ištrynimo komandą',
+    },
+    {
+      target: '#logout-button',
+      content: (
         <span>
-          Atsijungia nuo sistemos. <strong>Jei netyčia uždarėte langą ar atsijungėte nuo sistemos, nenusikopijavę transkribuoto teksto</strong> - nepergyvenkite, sistema atsimena paskutinius Jūsų įrašus 6h (arba kol neišvalote diktavimo lango). Tiesiog prisijunkite iš naujo.
+          Atsijungia nuo sistemos.{' '}
+          <strong>
+            Jei netyčia uždarėte langą ar atsijungėte nuo sistemos, nenusikopijavę transkribuoto
+            teksto
+          </strong>{' '}
+          - nepergyvenkite, sistema atsimena paskutinius Jūsų įrašus 6h (arba kol neišvalote
+          diktavimo lango). Tiesiog prisijunkite iš naujo.
         </span>
-      )
+      ),
     },
   ];
 
-  const overlayColor = theme.palette.mode === 'dark'
-    ? "rgba(0, 0, 0, 0.7)"
-    : "rgba(0, 0, 0, 0.3)";
+  const overlayColor = theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.3)';
 
   function tourStatusChanged(status: string) {
     console.log('tourStatusChanged', status);
     if (status === 'finished' || status === 'skipped') {
-      (
-        async () => {
-          ``
-          try {
-            await configService.save({ skipTour: true });
-            console.log("skip tour saved");
-          } catch (e) {
-            console.error(e)
-          }
+      (async () => {
+        ``;
+        try {
+          await configService.save({ skipTour: true });
+          console.log('skip tour saved');
+        } catch (e) {
+          console.error(e);
         }
-      )();
+      })();
       if (user) {
         user.skipTour = true;
       }
@@ -443,30 +488,35 @@ function Transcriber() {
             maxWidth: '1400px',
             display: 'flex',
             flexDirection: 'column',
-            height: '90vh'
+            height: '90vh',
           }}
         >
+          <div
+            style={{
+              padding: '10px',
 
-          <div style={{
-            padding: '10px',
-
-            flex: 1, // Allow this div to grow and shrink as needed
-            overflowY: 'auto', // Enable vertical scrolling
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            marginBottom: '10px', // Space between text areas and buttons
-          }}
+              flex: 1, // Allow this div to grow and shrink as needed
+              overflowY: 'auto', // Enable vertical scrolling
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              marginBottom: '10px', // Space between text areas and buttons
+            }}
             id="transcription-area"
           >
-            <audio controls ref={audioRef} src={audioFileUrl || ""}
-              style={{ opacity: (transcriberStatus === TranscriberStatus.IDLE ? 1 : 0.5) }}
+            <audio
+              controls
+              ref={audioRef}
+              src={audioFileUrl || ''}
+              style={{ opacity: transcriberStatus === TranscriberStatus.IDLE ? 1 : 0.5 }}
               id="audio-player"
             >
               Your browser does not support the audio element.
             </audio>
             {lists.map((list, index) => (
-              <div key={list.id}
-                style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+              <div
+                key={list.id}
+                style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}
+              >
                 <TextField
                   multiline
                   fullWidth
@@ -479,21 +529,29 @@ function Transcriber() {
                   }}
                   ref={index === lists.length - 1 ? lastItemRef : null}
                   InputProps={{
-                    readOnly: (transcriberStatus === TranscriberStatus.TRANSCRIBING || transcriberStatus === TranscriberStatus.STOPPING) && index === lists.length - 1,
+                    readOnly:
+                      (transcriberStatus === TranscriberStatus.TRANSCRIBING ||
+                        transcriberStatus === TranscriberStatus.STOPPING) &&
+                      index === lists.length - 1,
                     style: {
                       // backgroundColor: transcriberStatus === TranscriberStatus.TRANSCRIBING && index === lists.length - 1 ? 'red' : 'inherit',
-                      opacity: (transcriberStatus === TranscriberStatus.TRANSCRIBING || transcriberStatus === TranscriberStatus.STOPPING) && index === lists.length - 1 ? 0.7 : 1,
+                      opacity:
+                        (transcriberStatus === TranscriberStatus.TRANSCRIBING ||
+                          transcriberStatus === TranscriberStatus.STOPPING) &&
+                        index === lists.length - 1
+                          ? 0.7
+                          : 1,
                       border:
                         transcriberStatus === TranscriberStatus.TRANSCRIBING &&
-                          index === lists.length - 1
-                          ? "5px solid red"
+                        index === lists.length - 1
+                          ? '5px solid red'
                           : undefined,
                       animation:
                         transcriberStatus === TranscriberStatus.TRANSCRIBING &&
-                          index === lists.length - 1
-                          ? "waveBorder 1.5s ease-in-out infinite"
-                          : "none",
-                      borderRadius: "5px", // makes it look smoother
+                        index === lists.length - 1
+                          ? 'waveBorder 1.5s ease-in-out infinite'
+                          : 'none',
+                      borderRadius: '5px', // makes it look smoother
                     },
                   }}
                 />
@@ -507,7 +565,11 @@ function Transcriber() {
                   }
                   label="" // No label next to the checkbox
                   sx={{ marginLeft: '10px' }}
-                  disabled={(transcriberStatus === TranscriberStatus.TRANSCRIBING || transcriberStatus === TranscriberStatus.STOPPING) && index === lists.length - 1}
+                  disabled={
+                    (transcriberStatus === TranscriberStatus.TRANSCRIBING ||
+                      transcriberStatus === TranscriberStatus.STOPPING) &&
+                    index === lists.length - 1
+                  }
                 />
               </div>
             ))}
@@ -519,7 +581,15 @@ function Transcriber() {
               width: '100%',
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginTop: '10px', width: '700px' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '10px',
+                marginTop: '10px',
+                width: '700px',
+              }}
+            >
               <ClearButton
                 onClear={clear}
                 disabled={!(isAnyTextPresent || lists.length > 1) || isRecording}
@@ -527,17 +597,25 @@ function Transcriber() {
 
               <FormControlLabel
                 value="end"
-                control={<Switch color="warning"
-                  onChange={(_, checked) => startStopAuto(checked)}
-                  disabled={(!isRecording && workers === 0) || (transcriberStatus === TranscriberStatus.TRANSCRIBING || transcriberStatus === TranscriberStatus.STOPPING)}
-                />}
+                control={
+                  <Switch
+                    color="warning"
+                    onChange={(_, checked) => startStopAuto(checked)}
+                    disabled={
+                      (!isRecording && workers === 0) ||
+                      transcriberStatus === TranscriberStatus.TRANSCRIBING ||
+                      transcriberStatus === TranscriberStatus.STOPPING
+                    }
+                  />
+                }
                 label={isAuto ? 'Automatinis' : 'Rankinis'}
                 checked={isAuto}
                 labelPlacement="end"
                 id="auto-button"
               />
 
-              <Button variant="contained"
+              <Button
+                variant="contained"
                 color="primary"
                 onClick={start}
                 disabled={workers === 0}
@@ -545,25 +623,40 @@ function Transcriber() {
                 className={isRecording ? 'hidden' : ''}
                 id="record-button"
               >
-                Įrašyti&nbsp;<span style={{ fontSize: '0.8em', fontStyle: 'italic' }}>({workers})</span>
+                Įrašyti&nbsp;
+                <span style={{ fontSize: '0.8em', fontStyle: 'italic' }}>({workers})</span>
               </Button>
 
               <AudioRecorder ref={audioRecorderRef} transcriberRef={transcriberRef} />
 
-              <Button variant="contained" color="primary" disabled={!isAnySelectedText || (transcriberStatus === TranscriberStatus.TRANSCRIBING
-                || transcriberStatus === TranscriberStatus.STOPPING)} onClick={copyToClipboard}
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={
+                  !isAnySelectedText ||
+                  transcriberStatus === TranscriberStatus.TRANSCRIBING ||
+                  transcriberStatus === TranscriberStatus.STOPPING
+                }
+                onClick={copyToClipboard}
                 id="copy-button"
               >
                 Kopijuoti
               </Button>
-              <Button variant="contained" color="primary" disabled={!isAnyNotSelected || (transcriberStatus === TranscriberStatus.TRANSCRIBING || transcriberStatus === TranscriberStatus.STOPPING)} onClick={selectAll}
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={
+                  !isAnyNotSelected ||
+                  transcriberStatus === TranscriberStatus.TRANSCRIBING ||
+                  transcriberStatus === TranscriberStatus.STOPPING
+                }
+                onClick={selectAll}
                 id="select-all-button"
               >
                 Pažymėti visus
               </Button>
             </Box>
           </Box>
-
         </Box>
 
         <Joyride
@@ -573,20 +666,20 @@ function Transcriber() {
           showSkipButton
           scrollToFirstStep={true}
           locale={{
-            back: "Atgal",
-            close: "Uždaryti",
-            last: "Pabaigti turą",
-            next: "Toliau",
-            skip: "Praleisti paaiškinimo turą",
-            open: "Atidaryti paaiškinimo turą"
+            back: 'Atgal',
+            close: 'Uždaryti',
+            last: 'Pabaigti turą',
+            next: 'Toliau',
+            skip: 'Praleisti paaiškinimo turą',
+            open: 'Atidaryti paaiškinimo turą',
           }}
           styles={{
             options: {
               primaryColor: theme.palette.warning.main,
               textColor: theme.palette.text.primary,
               backgroundColor: theme.palette.background.paper,
-              overlayColor: overlayColor
-            }
+              overlayColor: overlayColor,
+            },
           }}
           callback={(data) => {
             const { status, action } = data;

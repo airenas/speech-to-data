@@ -1,10 +1,12 @@
+import { Ref, forwardRef } from 'react';
+
+import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
+
 import { CustomContentProps, SnackbarProvider } from 'notistack';
 
 import { notifications } from '@/config';
 
-import Alert from '@mui/material/Alert';
-import AlertTitle from '@mui/material/AlertTitle';
-import { Ref, forwardRef } from 'react';
 import Notifier from './Notifier';
 
 const ErrorNotification = forwardRef(function ErrorNotification(

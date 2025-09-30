@@ -10,6 +10,7 @@ import Header from '@/sections/Header';
 import Notifications from '@/sections/Notifications';
 import SW from '@/sections/SW';
 import Sidebar from '@/sections/Sidebar';
+
 import { TranscriberProvider } from './app-context/AppContext';
 
 function App() {

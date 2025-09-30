@@ -1,10 +1,10 @@
-import InfoIcon from '@mui/icons-material/Info';
 import HomeIcon from '@mui/icons-material/Home';
+import InfoIcon from '@mui/icons-material/Info';
 
+import { makeLink } from '@/config';
 import asyncComponentLoader from '@/utils/loader';
 
 import { Pages, Routes } from './types';
-import { makeLink } from '@/config';
 
 const routes: Routes = {
   [Pages.Transcriber]: {

@@ -51,7 +51,7 @@ export default defineConfig(({ mode }) => {
               const fakeUser = { id: "dev-user" };
               const json = JSON.stringify(fakeUser);
               const encoded = Buffer.from(json).toString("base64");
-              proxyReq.setHeader("X-User-Info", encoded);
+              proxyReq.setHeader("User-Info", encoded);
             });
           },
         },

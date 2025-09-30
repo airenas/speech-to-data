@@ -7,7 +7,7 @@ enum Pages {
   Transcriber,
   About,
   NotFound,
-  Login
+  Login,
 }
 
 type PathRouteCustomProps = {

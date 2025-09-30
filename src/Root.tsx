@@ -4,8 +4,9 @@ import { HelmetProvider } from 'react-helmet-async';
 import { RecoilRoot } from 'recoil';
 
 import ThemeProvider from '@/theme/Provider';
-import VersionLogger from './version-logger';
+
 import { TranscriberProvider } from './app-context/AppContext';
+import VersionLogger from './version-logger';
 
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
@@ -17,9 +18,7 @@ function render(App: ComponentType) {
         <HelmetProvider>
           <VersionLogger />
           <ThemeProvider>
-           
-              <App />
-  
+            <App />
           </ThemeProvider>
         </HelmetProvider>
       </RecoilRoot>

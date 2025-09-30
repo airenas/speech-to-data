@@ -1,12 +1,19 @@
 import { serverUrl } from '@/config';
-import { ConfigOptions, ServerStatusCode, SpeechSegment, WebSocketEvent, TranscriptionEvent } from './types';
+
+import {
+  ConfigOptions,
+  ServerStatusCode,
+  SpeechSegment,
+  TranscriptionEvent,
+  WebSocketEvent,
+} from './types';
 
 // Server status codes
 const SERVER_STATUS_CODE: ServerStatusCode = {
   0: 'Success',
   1: 'No speech',
   2: 'Aborted',
-  9: 'No available'
+  9: 'No available',
 };
 
 const ERR_NETWORK = 2;
@@ -21,31 +28,55 @@ const MSG_WEB_SOCKET_OPEN = 9;
 const MSG_WEB_SOCKET_CLOSE = 10;
 
 export class Config implements ConfigOptions {
-
   server = `${serverUrl}/speech`;
   statusServer = `${serverUrl}/status`;
   sampleRate = 16000;
-  contentType = 'content-type=audio/x-raw,+layout=(string)interleaved,+rate=(int)16000,+format=(string)S16LE,+channels=(int)1';
-  onError: (type: number, error: string) => void = (et, e) => { console.error(et, e); };
-  onReadyForSpeech: () => void = () => { console.log('onReadyForSpeech'); };
-  onStartTranscription: (id: string) => void = (id) => { console.log('onStartTranscription', id); };
-  onStopTranscription: (final: boolean) => void = (final) => { console.log('onStopTranscription', final); };
-  onEndOfSpeech: () => void = () => { console.log('onEndOfSpeech'); };
-  onPartialResults: (data: any) => void = (data) => { console.log('onPartialResults ' + data); };
-  onResults: (data: any) => void = (data) => { console.log('onResults ' + data); };
-  onServerStatus: (data: any) => void = (data) => { console.log('onServerStatus ' + data); };
-  onEndOfSession: () => void = () => { console.log('onEndOfSession'); };
-  onEvent: (eventType: number, data: any) => void = (e, data) => { console.log('onEvent ' + e); };
-  rafCallback: (time: number) => void = (time) => { console.log('rafCallback'); };
-  onCommand?: ((command: string) => void) = (command) => { console.log('onCommand', command); };
+  contentType =
+    'content-type=audio/x-raw,+layout=(string)interleaved,+rate=(int)16000,+format=(string)S16LE,+channels=(int)1';
+  onError: (type: number, error: string) => void = (et, e) => {
+    console.error(et, e);
+  };
+  onReadyForSpeech: () => void = () => {
+    console.log('onReadyForSpeech');
+  };
+  onStartTranscription: (id: string) => void = (id) => {
+    console.log('onStartTranscription', id);
+  };
+  onStopTranscription: (final: boolean) => void = (final) => {
+    console.log('onStopTranscription', final);
+  };
+  onEndOfSpeech: () => void = () => {
+    console.log('onEndOfSpeech');
+  };
+  onPartialResults: (data: any) => void = (data) => {
+    console.log('onPartialResults ' + data);
+  };
+  onResults: (data: any) => void = (data) => {
+    console.log('onResults ' + data);
+  };
+  onServerStatus: (data: any) => void = (data) => {
+    console.log('onServerStatus ' + data);
+  };
+  onEndOfSession: () => void = () => {
+    console.log('onEndOfSession');
+  };
+  onEvent: (eventType: number, data: any) => void = (e, data) => {
+    console.log('onEvent ' + e);
+  };
+  rafCallback: (time: number) => void = (time) => {
+    console.log('rafCallback');
+  };
+  onCommand?: (command: string) => void = (command) => {
+    console.log('onCommand', command);
+  };
 }
 
 export class KaldiSpeechSegment implements SpeechSegment {
   constructor(
     public segment: number,
     public transcript: string,
-    public final: boolean
-  ) { }
+    public final: boolean,
+  ) {}
 }
 
 export class KaldiRTTranscriber {
@@ -108,13 +139,12 @@ export class KaldiRTTranscriber {
           if (res.status === 0) {
             if (res.event === TranscriptionEvent.START_TRANSCRIPTION) {
               console.debug('onStartTranscription', res);
-              config.onStartTranscription?.(res["transcription-id"]);
+              config.onStartTranscription?.(res['transcription-id']);
             } else if (res.event === TranscriptionEvent.STOP_TRANSCRIPTION) {
               config.onStopTranscription?.(true);
             } else if (res.event === TranscriptionEvent.STOPPING_TRANSCRIPTION) {
               config.onStopTranscription?.(false);
-            }
-            else if (res.event === TranscriptionEvent.TRANSCRIPTION) {
+            } else if (res.event === TranscriptionEvent.TRANSCRIPTION) {
               if (res.result) {
                 if (res.result.final) {
                   config.onResults?.(res);
@@ -122,11 +152,15 @@ export class KaldiRTTranscriber {
                   config.onPartialResults?.(res);
                 }
               }
-            } else { // other commands
+            } else {
+              // other commands
               config.onCommand?.(res.event);
             }
           } else {
-            config.onError?.(ERR_SERVER, 'Server error: ' + res.status + ': ' + this.getDescription(res.status));
+            config.onError?.(
+              ERR_SERVER,
+              'Server error: ' + res.status + ': ' + this.getDescription(res.status),
+            );
           }
         } catch (err) {
           config.onError?.(ERR_SERVER, 'Failed to parse server response');
@@ -176,7 +210,10 @@ export class KaldiRTTranscriber {
           this.config.onEvent?.(MSG_SEND_EOS, 'Send tag: ' + item);
         }
       } else {
-        this.config.onError?.(ERR_NETWORK, 'WebSocket: readyState!=1: ' + state + ': failed to send: ' + item);
+        this.config.onError?.(
+          ERR_NETWORK,
+          'WebSocket: readyState!=1: ' + state + ': failed to send: ' + item,
+        );
       }
     } else {
       this.config.onError?.(ERR_CLIENT, 'No web socket connection: failed to send: ' + item);
@@ -219,12 +256,12 @@ export class KaldiRTTranscriber {
   stop() {
     this.isStopped = true;
     if (this.ws) {
-      console.debug('ws stop')
+      console.debug('ws stop');
       this.ws.close();
       this.ws = null;
     }
     if (this.wsStatus) {
-      console.debug('ws status stop')
+      console.debug('ws status stop');
       this.wsStatus.close();
       this.wsStatus = null;
     }
@@ -235,11 +272,10 @@ function addAuth(url: string): string {
   const sessionId = sessionStorage.getItem('session_id');
   const res = new URL(url);
   if (sessionId) {
-    console.log("add session id")
+    console.log('add session id');
     res.searchParams.append('token', sessionId);
   } else {
-    console.warn("no session")
+    console.warn('no session');
   }
   return res.toString();
 }
-
