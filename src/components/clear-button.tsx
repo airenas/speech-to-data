@@ -17,7 +17,7 @@ const ClearButton: React.FC<ClearButtonProps> = ({ onClear, disabled }) => {
 
   useEffect(() => {
     if (showCancel) {
-      console.log('useEffect setInterval');
+      console.debug('useEffect setInterval');
       const startTime = Date.now();
       timerDrawRef.current = setInterval(() => {
         const elapsed = Date.now() - startTime;
@@ -26,7 +26,7 @@ const ClearButton: React.FC<ClearButtonProps> = ({ onClear, disabled }) => {
 
       return () => {
         if (timerDrawRef.current) {
-          console.log('clearing timeouut');
+          console.debug('clearing timeouut');
           clearInterval(timerDrawRef.current);
         }
       };
@@ -34,7 +34,7 @@ const ClearButton: React.FC<ClearButtonProps> = ({ onClear, disabled }) => {
   }, [showCancel]);
 
   const handleClick = () => {
-    console.log('click clearing');
+    console.debug('click clearing');
     if (!showCancel) {
       setShowCancel(true);
 
@@ -43,16 +43,16 @@ const ClearButton: React.FC<ClearButtonProps> = ({ onClear, disabled }) => {
       }
 
       timerRef.current = setTimeout(() => {
-        console.log('clearing');
+        console.debug('clearing');
         onClear();
         setShowCancel(false);
         setProgress(0);
       }, 3000);
     } else {
-      console.log('clearing timeout click');
+      console.debug('clearing timeout click');
       setShowCancel(false);
       if (timerRef.current) {
-        console.log('clearing timeout ', timerRef.current);
+        console.debug('clearing timeout ', timerRef.current);
         clearTimeout(timerRef.current);
         setProgress(0);
         timerRef.current = null;

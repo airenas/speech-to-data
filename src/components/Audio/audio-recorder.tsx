@@ -27,11 +27,11 @@ const AudioRecorder = forwardRef<
 
   useImperativeHandle(ref, () => ({
     startRecording: () => {
-      console.log('Start recording...');
+      console.debug('Start recording...');
       startRecording();
     },
     stopRecording: () => {
-      console.log('Stop recording...');
+      console.debug('Stop recording...');
       stopRecording();
     },
   }));
@@ -67,7 +67,7 @@ const AudioRecorder = forwardRef<
 
   const startRecording = async () => {
     rec_id = nanoid();
-    console.log(`start recording ${rec_id}`);
+    console.debug(`start recording ${rec_id}`);
     isStoppedRef.current = false;
     if (streamRef.current) {
       console.warn('Already recording!!!!!');
@@ -75,7 +75,8 @@ const AudioRecorder = forwardRef<
     }
     try {
       if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioContextRef.current = new (window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       }
       const audioContext = audioContextRef.current;
 
@@ -121,7 +122,7 @@ const AudioRecorder = forwardRef<
         source.connect(analyser);
 
         const baseUrl = import.meta.env.VITE_ENV_BASE_PATH || '/__BASE_PATH__/';
-        console.log('baseUrl:', baseUrl);
+        console.debug('baseUrl:', baseUrl);
         await audioContext.audioWorklet.addModule(`${baseUrl}/audio-processor.js`);
         const workletNode = new AudioWorkletNode(audioContext, 'recorder-audio-processor', {
           processorOptions: {
@@ -159,16 +160,20 @@ const AudioRecorder = forwardRef<
         setRecording(true);
         draw(canvasCtx, canvas);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      showError(`Nepavyko pradėti įrašinėti\n\n${error.message}`);
+      if (error instanceof Error) {
+        showError(`Nepavyko pradėti įrašinėti\n\n${error.message}`);
+      } else {
+        showError('Nepavyko pradėti įrašinėti (nežinoma klaida)');
+      }
       stopRecording();
     }
   };
 
   useEffect(() => {
     return () => {
-      console.log('drop audio element');
+      console.debug('drop audio element');
       stopRecording();
     };
   }, []);
@@ -206,7 +211,7 @@ const AudioRecorder = forwardRef<
       setTranscriberStatus(TranscriberStatus.STOPPING);
       try {
         transcriberRef.current?.stopAudio();
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(error);
       }
     }

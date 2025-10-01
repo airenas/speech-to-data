@@ -59,19 +59,19 @@ function Transcriber() {
 
   const start = () => {
     setScrollBottom(true);
-    console.log('Starting recording', audioRecorderRef.current);
+    console.debug('Starting recording', audioRecorderRef.current);
     if (audioRecorderRef.current) {
       audioRecorderRef.current.startRecording();
     }
   };
 
   const startStopAuto = (checked: boolean) => {
-    console.log('Toggling auto to', checked);
+    console.debug('Toggling auto to', checked);
     setAuto(checked);
   };
 
   const stop = () => {
-    console.log('Stoping recording', audioRecorderRef.current);
+    console.debug('Stoping recording', audioRecorderRef.current);
     if (audioRecorderRef.current) {
       audioRecorderRef.current.stopRecording();
     }
@@ -97,7 +97,7 @@ function Transcriber() {
       firstRender.current = false;
       return;
     }
-    console.log('isAuto changed', isAuto);
+    console.debug('isAuto changed', isAuto);
 
     if (isAuto) {
       start();
@@ -118,15 +118,15 @@ function Transcriber() {
   };
 
   const onFocus = (index: number, item: TranscriptionView) => {
-    console.log('onFocus', index, item);
+    // console.log('onFocus', index, item);
     const audioFileUrl = `${audioUrl}/${item.id}`;
-    console.log('Setting audio URL to', audioUrl);
+    // console.log('Setting audio URL to', audioUrl);
     const securedAudioFileUrl = addAuth(audioFileUrl);
     updateAudio(securedAudioFileUrl);
     if (lists.length - 1 > index) {
       setScrollBottom(false);
     } else {
-      console.log('Setting scroll bottom');
+      console.debug('Setting scroll bottom');
       setScrollBottom(true);
     }
   };
@@ -144,7 +144,7 @@ function Transcriber() {
     }
     setLists([...newLists, { id: id, content: '', selected: false }]);
 
-    console.log('Starting recording', audioRecorderRef.current);
+    console.debug('Starting recording', audioRecorderRef.current);
     lastTranscriptionRef.current = new TranscriptionResult();
   };
 
@@ -159,7 +159,7 @@ function Transcriber() {
   const updateRes = () => {
     const text = lastTranscriptionRef.current.getFullTranscription();
 
-    console.log('transcriberStatus', transcriberStatusRef.current);
+    console.debug('transcriberStatus', transcriberStatusRef.current);
     if (
       transcriberStatusRef.current !== TranscriberStatus.TRANSCRIBING &&
       transcriberStatusRef.current !== TranscriberStatus.STOPPING
@@ -186,7 +186,7 @@ function Transcriber() {
 
     const cfg = new Config();
     cfg.onPartialResults = (data: TranscriptionResponse) => {
-      console.debug('onPartialResults', data);
+      // console.debug('onPartialResults', data);
       const transcript = data.result?.hypotheses;
       if (transcript) {
         const text = transcript[0].transcript;
@@ -197,7 +197,7 @@ function Transcriber() {
     };
 
     cfg.onResults = (data: TranscriptionResponse) => {
-      console.debug('onResults', data);
+      // console.debug('onResults', data);
       const transcript = data.result?.hypotheses;
       // console.log('transcript', transcript);
       if (transcript) {
@@ -280,7 +280,7 @@ function Transcriber() {
     };
 
     cfg.onError = (et: number, data: string) => {
-      console.log('onError', et, data);
+      console.error(`error (${et}) ${data}`);
       showError('Atpažintuvo klaida');
       if (!transcriberRef.current) {
         return;
@@ -293,7 +293,7 @@ function Transcriber() {
       selectLast();
     };
     cfg.onCommand = (command: string) => {
-      console.log('onCommand', command);
+      console.debug('onCommand', command);
       if (command === TranscriptionEvent.STOP_LISTENING_COMMAND) {
         startStopAuto(false);
         showInfo('Sustabdyta');
@@ -466,12 +466,12 @@ function Transcriber() {
   const overlayColor = theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.3)';
 
   function tourStatusChanged(status: string) {
-    console.log('tourStatusChanged', status);
+    console.debug('tourStatusChanged', status);
     if (status === 'finished' || status === 'skipped') {
       (async () => {
         try {
           await configService.save({ skipTour: true });
-          console.log('skip tour saved');
+          console.debug('skip tour saved');
         } catch (e) {
           console.error(e);
         }

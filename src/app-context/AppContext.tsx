@@ -77,7 +77,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
           const cfg = await configService.get();
           user.skipTour = cfg.skipTour || false;
           if (cfg.skipTour) {
-            console.log('skip tour');
+            console.debug('skip tour');
           }
         } catch (e) {
           console.error(e);
@@ -116,7 +116,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const keepAlive = async () => {
     const sessionId = sessionStorage.getItem(SESSION_ID_KEY);
     if (sessionId) {
-      console.log('call keep alive');
+      console.debug('call keep alive');
       const res = await authService.keepAlive(sessionId);
       if (res) {
         console.error(res);
@@ -145,7 +145,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (prevLists.length === 0) return prevLists; // No lists to update
       const updatedLists = [...prevLists];
       const lastItemIndex = updatedLists.length - 1;
-      console.log('Updating list item:', lastItemIndex);
+      console.debug('Updating list item:', lastItemIndex);
       updatedLists[lastItemIndex] = {
         ...updatedLists[lastItemIndex],
         selected: true,
@@ -190,7 +190,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
       try {
         await textService.save({ parts: parts });
         prevListsRef.current = current;
-        console.log('Lists saved');
+        console.debug('Lists saved: length', current.length);
       } catch (err) {
         console.error('Failed to save lists:', err);
       }

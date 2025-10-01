@@ -4,7 +4,7 @@ class StreamerAudioProcessor extends AudioWorkletProcessor {
       const sampleRate = options.processorOptions.sampleRate
       const bufferInSec = options.processorOptions.bufferInSec
       this.bufferSize = Math.round((sampleRate / 128 * bufferInSec)) // 128 default received buffer for process method
-      console.log(`processor's buffer: ${this.bufferSize}`)
+      console.debug(`processor's buffer: ${this.bufferSize}`)
       this.buffer = new Array(this.bufferSize)
       this.bufferIndex = 0
     }
@@ -13,7 +13,7 @@ class StreamerAudioProcessor extends AudioWorkletProcessor {
       // console.log('on process')
       const input = inputs[0]
       if (input[0] === undefined) {
-        console.log('no data')
+        console.debug('no data')
         return false
       }
       this.buffer[this.bufferIndex] = inputs[0][0].slice()

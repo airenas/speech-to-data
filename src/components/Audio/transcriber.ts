@@ -39,40 +39,40 @@ export class Config implements ConfigOptions {
     console.error(et, e);
   };
   onReadyForSpeech: () => void = () => {
-    console.log('onReadyForSpeech');
+    console.debug('onReadyForSpeech');
   };
   onStartTranscription: (id: string) => void = (id) => {
-    console.log('onStartTranscription', id);
+    console.debug('onStartTranscription', id);
   };
   onStopTranscription: (final: boolean) => void = (final) => {
-    console.log('onStopTranscription', final);
+    console.debug('onStopTranscription', final);
   };
   onEndOfSpeech: () => void = () => {
-    console.log('onEndOfSpeech');
+    console.debug('onEndOfSpeech');
   };
   onPartialResults: (data: TranscriptionResponse) => void = (data) => {
-    console.log('onPartialResults ' + data);
+    console.debug('onPartialResults ' + data);
   };
   onResults: (data: TranscriptionResponse) => void = (data) => {
-    console.log('onResults ' + data);
+    console.debug('onResults ' + data);
   };
   onServerStatus: (data: ServerStatus) => void = (data) => {
-    console.log('onServerStatus ' + data);
+    console.debug('onServerStatus ' + data);
   };
   onEndOfSession: () => void = () => {
-    console.log('onEndOfSession');
+    console.debug('onEndOfSession');
   };
   onEvent: (eventType: number, data: string | Blob | ArrayBuffer | undefined) => void = (
     e,
     _data,
   ) => {
-    console.log('onEvent ' + e);
+    console.debug('onEvent ' + e);
   };
   rafCallback: (time: number) => void = (_time) => {
-    console.log('rafCallback');
+    console.debug('rafCallback');
   };
   onCommand?: (command: string) => void = (command) => {
-    console.log('onCommand', command);
+    console.debug('onCommand', command);
   };
 }
 
@@ -85,7 +85,7 @@ export class KaldiRTTranscriber {
   isStopped = false;
 
   constructor(public config: ConfigOptions = {}) {
-    console.log('new KaldiRTTranscriber');
+    console.debug('new KaldiRTTranscriber');
     this.config = { ...new Config(), ...config };
     this.wsStatus = this.createStatusWebSocket();
     // this.init();
@@ -96,7 +96,7 @@ export class KaldiRTTranscriber {
   }
 
   stopAudio() {
-    console.log('stopAudio');
+    console.debug('stopAudio');
     this.socketSend('EOS');
   }
 
@@ -105,12 +105,12 @@ export class KaldiRTTranscriber {
   }
 
   stopTranscription() {
-    console.log('stopTranscription');
+    console.debug('stopTranscription');
     this.socketSend('STOP_TRANSCRIPTION');
   }
 
   startTranscription(auto: boolean) {
-    console.log('startTranscription');
+    console.debug('startTranscription');
     if (auto) {
       this.socketSend('START_TRANSCRIPTION_AUTO');
     } else {
@@ -120,7 +120,7 @@ export class KaldiRTTranscriber {
 
   private createWebSocket(): WebSocket {
     const url = `${this.config.server}?${this.config.contentType}`;
-    console.log('open url ' + url);
+    console.debug('open url ' + url);
 
     const ws = new WebSocket(addAuth(url));
     const config = this.config;
@@ -180,7 +180,6 @@ export class KaldiRTTranscriber {
     };
 
     ws.onerror = (_e: Event) => {
-      console.log('on error');
       config.onError?.(ERR_NETWORK, 'WebSocket connection error');
     };
 
@@ -219,7 +218,7 @@ export class KaldiRTTranscriber {
   }
 
   private createStatusWebSocket() {
-    console.log(`createStatusWebSocket`);
+    console.debug(`createStatusWebSocket`);
 
     const wsUrl = addAuth(this.config.statusServer || '');
 
