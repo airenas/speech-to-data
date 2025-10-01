@@ -257,7 +257,8 @@ const AudioRecorder = forwardRef<
   return (
     <div
       style={{
-        display: isRecording ? 'block' : 'none',
+        display: isRecording ? 'inline-flex' : 'none',
+        // alignItems: 'stretch',
       }}
     >
       <Button
@@ -269,6 +270,7 @@ const AudioRecorder = forwardRef<
           padding: 6,
           width: 100,
           color: theme.palette.getContrastText(theme.palette.background.paper),
+          flex: 1, // fills available space equally
         }}
         disabled={!isRecording}
       >

@@ -36,6 +36,8 @@ function Transcriber() {
 
   const startAudioRef = useRef<HTMLAudioElement | null>(null);
   const stopAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [isAllSelected, setIsAllSelected] = useState(false);
+  const [isAnySelected, setIsAnySelected] = useState(false);
 
   const {
     lists,
@@ -87,6 +89,13 @@ function Transcriber() {
   const selectAll = () => {
     const listCopy = listsRef.current;
     setLists(listCopy.map((list) => ({ ...list, selected: true })));
+  };
+
+  const handleSelectAllChange = () => {
+    const newValue = !isAllSelected;
+    setIsAllSelected(newValue);
+    const listCopy = listsRef.current;
+    setLists(listCopy.map((list) => ({ ...list, selected: newValue })));
   };
 
   const updateListContent = (id: string, newContent: string) => {
@@ -325,7 +334,7 @@ function Transcriber() {
     if (isTour || !user?.skipTour) {
       console.log('start tour');
       setRunTour(false);
-      setTimeout(() => setRunTour(true), 50); 
+      setTimeout(() => setRunTour(true), 50);
     }
   }, [isTour, user]);
 
@@ -362,6 +371,8 @@ function Transcriber() {
 
   useEffect(() => {
     listsRef.current = lists;
+    setIsAllSelected(lists.every((l) => l.selected));
+    setIsAnySelected(lists.some((l) => l.selected));
     // console.debug('Lists updated:', lists, scrollBottom, lastItemRef.current);
     if (lastItemRef.current && scrollBottom) {
       lastItemRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -385,8 +396,6 @@ function Transcriber() {
       }
     };
   }, []);
-
-  const isAnyNotSelected = lists.some((list) => !list.selected);
 
   const copyToClipboard = () => {
     const allText = lists
@@ -420,11 +429,13 @@ function Transcriber() {
   const introSteps = [
     {
       target: '#record-button',
-      content:
+      content: (
         <span>
-          Pradedamas arba stabdomas įrašas. <br /><br />Skliausteliuose esantis skaičius rodo laisvas įrašymo sesijas
+          Pradedamas arba stabdomas įrašas. <br />
+          <br />
+          Skliausteliuose esantis skaičius rodo laisvas įrašymo sesijas
         </span>
-
+      ),
     },
     {
       target: '#transcription-area',
@@ -432,27 +443,31 @@ function Transcriber() {
     },
     {
       target: '#audio-player',
-      content:
+      content: (
         <span>
           Įrašo perklausymas
-
-          <br /><br />
-          <strong>SVARBU!</strong><br />Perklausymas galimas tik išjungus automatinį valdymą balsu
-
+          <br />
+          <br />
+          <strong>SVARBU!</strong>
+          <br />
+          Perklausymas galimas tik išjungus valdymą balsu
         </span>
+      ),
     },
     { target: '#copy-button', content: 'Kopijuoja pasirinktų langelių tekstą' },
     {
       target: '#auto-button',
       content: (
         <span>
-          Pasirinkus automatinį valdymą balsu įrašymas:
-          <li>
-            pradedamas ištarus <strong>PRADĖK RAŠYTI</strong>,
-          </li>
-          <li>
-            baigiamas ištarus <strong>BAIK RAŠYTI</strong>
-          </li>
+          Pasirinkus valdymą balsu įrašymas:
+          <ul style={{ marginTop: '5px', paddingLeft: '20px', textAlign: 'left' }}>
+            <li>
+              pradedamas ištarus <strong>PRADĖK RAŠYTI</strong>,
+            </li>
+            <li>
+              baigiamas ištarus <strong>BAIK RAŠYTI</strong>
+            </li>
+          </ul>
         </span>
       ),
     },
@@ -463,11 +478,7 @@ function Transcriber() {
     },
     {
       target: '#logout-button',
-      content: (
-        <span>
-          Atsijungus neištrinti įrašai išliks 6 val.
-        </span>
-      ),
+      content: <span>Atsijungus neištrinti įrašai išliks 6 val.</span>,
     },
   ];
 
@@ -518,6 +529,25 @@ function Transcriber() {
             }}
             id="transcription-area"
           >
+            <Box display="flex" justifyContent="flex-end" alignItems="center" mr={0}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isAllSelected}
+                    indeterminate={isAnySelected && !isAllSelected} // shows partial selection
+                    onChange={handleSelectAllChange}
+                    color="secondary"
+                    disabled={
+                      lists.length === 0 ||
+                      transcriberStatus === TranscriberStatus.TRANSCRIBING ||
+                      transcriberStatus === TranscriberStatus.STOPPING
+                    }
+                  />
+                }
+                label="Pažymėti visus"
+                labelPlacement="start"
+              />
+            </Box>
 
             {lists.map((list, index) => (
               <div
@@ -545,17 +575,17 @@ function Transcriber() {
                       opacity:
                         (transcriberStatus === TranscriberStatus.TRANSCRIBING ||
                           transcriberStatus === TranscriberStatus.STOPPING) &&
-                          index === lists.length - 1
+                        index === lists.length - 1
                           ? 0.7
                           : 1,
                       border:
                         transcriberStatus === TranscriberStatus.TRANSCRIBING &&
-                          index === lists.length - 1
+                        index === lists.length - 1
                           ? '5px solid red'
                           : undefined,
                       animation:
                         transcriberStatus === TranscriberStatus.TRANSCRIBING &&
-                          index === lists.length - 1
+                        index === lists.length - 1
                           ? 'waveBorder 1.5s ease-in-out infinite'
                           : 'none',
                       borderRadius: '5px', // makes it look smoother
@@ -571,6 +601,7 @@ function Transcriber() {
                     />
                   }
                   label="" // No label next to the checkbox
+                  labelPlacement="start"
                   sx={{ marginLeft: '10px' }}
                   disabled={
                     (transcriberStatus === TranscriberStatus.TRANSCRIBING ||
@@ -615,7 +646,7 @@ function Transcriber() {
                     }
                   />
                 }
-                label="Automatinis valdymas balsu"
+                label="Valdymas balsu"
                 checked={isAuto}
                 labelPlacement="end"
                 id="auto-button"
@@ -649,20 +680,6 @@ function Transcriber() {
               >
                 Kopijuoti
               </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                disabled={
-                  !isAnyNotSelected ||
-                  transcriberStatus === TranscriberStatus.TRANSCRIBING ||
-                  transcriberStatus === TranscriberStatus.STOPPING
-                }
-                onClick={selectAll}
-                id="select-all-button"
-              >
-                Pažymėti visus
-              </Button>
-
             </Box>
             <Box
               sx={{

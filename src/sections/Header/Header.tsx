@@ -151,7 +151,3 @@ function Header() {
 }
 
 export default Header;
-function setIsDemoEnabled(arg0: boolean) {
-  throw new Error('Function not implemented.');
-}
-
