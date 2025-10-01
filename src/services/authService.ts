@@ -112,9 +112,9 @@ const authService = {
 
   async sessionOK(sessionId: string): Promise<string> {
     try {
-      const keepAliveUrl = authUrl;
-      console.debug(`sessionOK ${keepAliveUrl}`);
-      const response = await fetch(keepAliveUrl, {
+      const validateUrl = authUrl + '/validate';
+      console.debug(`validate ${validateUrl}`);
+      const response = await fetch(validateUrl, {
         method: 'GET',
         headers: {
           Authorization: `bearer ${sessionId}`,
@@ -123,13 +123,13 @@ const authService = {
       });
       if (!response.ok) {
         const responseText = await response.text();
-        console.error(`can't call sessionOK ${responseText}`);
+        console.error(`can't call validate ${responseText}`);
         if (response.status == 401) {
           return getError(responseText);
         }
       }
     } catch (error) {
-      console.error('Error during sessionOK:', error);
+      console.error('Error during validate:', error);
     }
     return '';
   },
