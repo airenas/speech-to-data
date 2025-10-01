@@ -622,10 +622,11 @@ function Transcriber() {
             <Box
               sx={{
                 display: 'flex',
+                flexWrap: 'wrap',
                 justifyContent: 'space-between',
                 gap: '10px',
                 marginTop: '10px',
-                width: '700px',
+                width: '900px',
               }}
             >
               <ClearButton
@@ -680,16 +681,6 @@ function Transcriber() {
               >
                 Kopijuoti
               </Button>
-            </Box>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '10px',
-                marginTop: '10px',
-                marginLeft: '10px',
-              }}
-            >
               <audio
                 controls
                 ref={audioRef}

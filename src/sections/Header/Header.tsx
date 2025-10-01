@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import HelpCenterIcon from '@mui/icons-material/HelpCenter';
+import HelpCenterOutlinedIcon from '@mui/icons-material/HelpCenterOutlined';
 import ThemeIcon from '@mui/icons-material/InvertColors';
 import LoginIcon from '@mui/icons-material/Login';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -126,7 +126,7 @@ function Header() {
                     data-pw="help-center"
                     disabled={isRecording || isTour}
                   >
-                    <HelpCenterIcon />
+                    <HelpCenterOutlinedIcon />
                   </IconButton>
                 </Tooltip>
               </Box>
