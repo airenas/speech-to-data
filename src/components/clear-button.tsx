@@ -90,7 +90,7 @@ const ClearButton: React.FC<ClearButtonProps> = ({ onClear, disabled }) => {
           }}
         />
       ) : null}
-      {showCancel ? 'Atšaukti' : 'Išvalyti'}
+      {showCancel ? 'Atšaukti' : 'Trinti viską'}
     </Button>
   );
 };

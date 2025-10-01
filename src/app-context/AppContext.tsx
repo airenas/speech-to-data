@@ -38,6 +38,8 @@ type TranscriberContextType = {
   login: (user: string, pass: string) => void;
   clearList: () => void;
   selectLast: () => void;
+  isTour: boolean;
+  setTour: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const TranscriberContext = createContext<TranscriberContextType | undefined>(undefined);
@@ -47,6 +49,7 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
     { content: '', id: '', selected: true },
   ]);
   const [isRecording, setRecording] = useState<boolean>(false);
+  const [isTour, setTour] = useState<boolean>(false);
   const [isAuto, setAuto] = useState<boolean>(false);
   const [transcriberStatus, setTranscriberStatus] = useState<TranscriberStatus>(
     TranscriberStatus.IDLE,
@@ -254,6 +257,8 @@ export const TranscriberProvider: React.FC<{ children: React.ReactNode }> = ({ c
         isAuto,
         setAuto,
         selectLast,
+        isTour,
+        setTour,
       }}
     >
       {children}

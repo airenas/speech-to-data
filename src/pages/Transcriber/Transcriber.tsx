@@ -52,6 +52,8 @@ function Transcriber() {
     isAuto,
     setAuto,
     selectLast,
+    isTour,
+    setTour,
   } = useAppContext();
   const isAutoRef = useRef(isAuto);
   const transcriberStatusRef = useRef(transcriberStatus);
@@ -316,10 +318,16 @@ function Transcriber() {
     if (!user) {
       navigate(makeLink('/login'));
     }
-    if (!user?.skipTour) {
-      setRunTour(true);
-    }
   }, [user]);
+
+  useEffect(() => {
+    console.log('start tour?', isTour);
+    if (isTour || !user?.skipTour) {
+      console.log('start tour');
+      setRunTour(false);
+      setTimeout(() => setRunTour(true), 50); 
+    }
+  }, [isTour, user]);
 
   useEffect(() => {
     console.debug('Selected audio URL changed to:', audioUrl);
@@ -413,51 +421,51 @@ function Transcriber() {
     {
       target: '#record-button',
       content:
-        'Spauskite čia, kad pradėtumėte arba sustabdytumėte įrašymą. Skliausteliuose esantis skaičius rodo laisvas įrašymo sesijas. Jei nėra laisvų sesijų, įrašyti negalėsite',
+        <span>
+          Pradedamas arba stabdomas įrašas. <br /><br />Skliausteliuose esantis skaičius rodo laisvas įrašymo sesijas
+        </span>
+
     },
     {
       target: '#transcription-area',
-      content: 'Diktavimo rezultatai. Tekstus taip pat galite redaguoti.',
+      content: 'Diktavimo rezultatai. Juos galima redaguoti.',
     },
     {
       target: '#audio-player',
-      content: 'Galite perklausyti diktavimo sesiją kiekvienam laukeliui',
+      content:
+        <span>
+          Įrašo perklausymas
+
+          <br /><br />
+          <strong>SVARBU!</strong><br />Perklausymas galimas tik išjungus automatinį valdymą balsu
+
+        </span>
     },
+    { target: '#copy-button', content: 'Kopijuoja pasirinktų langelių tekstą' },
     {
       target: '#auto-button',
       content: (
         <span>
-          Automatinis valdymas balsu. Įjungia klausymo režimą. Sistema:
+          Pasirinkus automatinį valdymą balsu įrašymas:
           <li>
-            pradeda įrašymą ištarus komandą <strong>pradėk rašyti</strong>,
+            pradedamas ištarus <strong>PRADĖK RAŠYTI</strong>,
           </li>
           <li>
-            baigia įrašymą ištarus komandą <strong>baik rašyti</strong>,
-          </li>
-          <li>
-            sustabdo klausymo režimą ištarus komandą <strong>baik klausyti</strong>
+            baigiamas ištarus <strong>BAIK RAŠYTI</strong>
           </li>
         </span>
       ),
     },
-    { target: '#select-all-button', content: 'Pažymi visus laukelius' },
-    { target: '#copy-button', content: 'Nukopijuoja pažymėtų laukelių tekstą į iškarpinę' },
     {
       target: '#clear-button',
       content:
-        'Ištrina visus diktavimo rezultatus. Paspaudus galite per 5s atšaukti ištrynimo komandą',
+        'Ištrina VISUS diktavimo rezultatus. Pakartotinai paspaudus per 5s trynimas sustabdomas',
     },
     {
       target: '#logout-button',
       content: (
         <span>
-          Atsijungia nuo sistemos.{' '}
-          <strong>
-            Jei netyčia uždarėte langą ar atsijungėte nuo sistemos, nenusikopijavę transkribuoto
-            teksto
-          </strong>{' '}
-          - nepergyvenkite. Sistema atsimena paskutinius Jūsų įrašus 6h (arba kol neišvalote
-          diktavimo lango)
+          Atsijungus neištrinti įrašai išliks 6 val.
         </span>
       ),
     },
@@ -468,6 +476,7 @@ function Transcriber() {
   function tourStatusChanged(status: string) {
     console.debug('tourStatusChanged', status);
     if (status === 'finished' || status === 'skipped') {
+      setTour(false);
       (async () => {
         try {
           await configService.save({ skipTour: true });
@@ -509,15 +518,7 @@ function Transcriber() {
             }}
             id="transcription-area"
           >
-            <audio
-              controls
-              ref={audioRef}
-              src={audioFileUrl || ''}
-              style={{ opacity: transcriberStatus === TranscriberStatus.IDLE ? 1 : 0.5 }}
-              id="audio-player"
-            >
-              Your browser does not support the audio element.
-            </audio>
+
             {lists.map((list, index) => (
               <div
                 key={list.id}
@@ -544,17 +545,17 @@ function Transcriber() {
                       opacity:
                         (transcriberStatus === TranscriberStatus.TRANSCRIBING ||
                           transcriberStatus === TranscriberStatus.STOPPING) &&
-                        index === lists.length - 1
+                          index === lists.length - 1
                           ? 0.7
                           : 1,
                       border:
                         transcriberStatus === TranscriberStatus.TRANSCRIBING &&
-                        index === lists.length - 1
+                          index === lists.length - 1
                           ? '5px solid red'
                           : undefined,
                       animation:
                         transcriberStatus === TranscriberStatus.TRANSCRIBING &&
-                        index === lists.length - 1
+                          index === lists.length - 1
                           ? 'waveBorder 1.5s ease-in-out infinite'
                           : 'none',
                       borderRadius: '5px', // makes it look smoother
@@ -566,7 +567,7 @@ function Transcriber() {
                     <Checkbox
                       checked={list.selected}
                       onChange={() => toggleSelect(list.id)}
-                      color="primary"
+                      color="secondary"
                     />
                   }
                   label="" // No label next to the checkbox
@@ -614,7 +615,7 @@ function Transcriber() {
                     }
                   />
                 }
-                label={isAuto ? 'Automatinis' : 'Rankinis'}
+                label="Automatinis valdymas balsu"
                 checked={isAuto}
                 labelPlacement="end"
                 id="auto-button"
@@ -661,6 +662,26 @@ function Transcriber() {
               >
                 Pažymėti visus
               </Button>
+
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '10px',
+                marginTop: '10px',
+                marginLeft: '10px',
+              }}
+            >
+              <audio
+                controls
+                ref={audioRef}
+                src={audioFileUrl || ''}
+                style={{ opacity: transcriberStatus === TranscriberStatus.IDLE ? 1 : 0.5 }}
+                id="audio-player"
+              >
+                Your browser does not support the audio element.
+              </audio>
             </Box>
           </Box>
         </Box>

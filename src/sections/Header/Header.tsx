@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import HelpCenterIcon from '@mui/icons-material/HelpCenter';
 import ThemeIcon from '@mui/icons-material/InvertColors';
 import LoginIcon from '@mui/icons-material/Login';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -22,12 +23,20 @@ function Header() {
   const [, sidebarActions] = useSidebar();
   const [theme, themeActions] = useTheme();
   const navigate = useNavigate();
-  const { user, logout } = useAppContext();
+  const { user, logout, isTour, setTour, isRecording } = useAppContext();
   const location = useLocation();
   const isLoginPage = location.pathname === makeLink('/login');
+  const isTranscriptionPage = location.pathname === makeLink('/');
 
   const handleLogout = async () => {
     logout();
+  };
+
+  const handleHelp = async () => {
+    setTour(true);
+    if (user) {
+      user.skipTour = false;
+    }
   };
 
   const handleLogin = async () => {
@@ -98,8 +107,26 @@ function Header() {
                     onClick={handleLogout}
                     data-pw="logout"
                     id="logout-button"
+                    disabled={isRecording}
                   >
                     <LogoutIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            )}
+            {user && isTranscriptionPage && (
+              <Box display="flex" alignItems="center">
+                <Divider orientation="vertical" flexItem />
+                <Tooltip title="Paaiškinimo turas" arrow>
+                  <IconButton
+                    color="info"
+                    edge="end"
+                    size="large"
+                    onClick={handleHelp}
+                    data-pw="help-center"
+                    disabled={isRecording || isTour}
+                  >
+                    <HelpCenterIcon />
                   </IconButton>
                 </Tooltip>
               </Box>
@@ -124,3 +151,7 @@ function Header() {
 }
 
 export default Header;
+function setIsDemoEnabled(arg0: boolean) {
+  throw new Error('Function not implemented.');
+}
+
