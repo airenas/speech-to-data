@@ -1,0 +1,193 @@
+x-logging:
+  &default-logging
+  options:
+    max-size: '20m'
+    max-file: '3'
+  driver: json-file
+
+services:
+
+  proxy:
+    container_name: proxy
+    image: traefik:2.11 
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - ./.traefik:/etc/traefik:ro
+    ports:
+      - "80:80" 
+      - "443:443"
+      - "8080:8080"
+    networks:
+     - polis   
+    restart: unless-stopped
+
+  manager:
+    image: airenas/docker-kaldi-gstreamer-server:${gstreamer_version}
+    container_name: manager
+    logging: *default-logging
+    restart: unless-stopped
+    ports:
+      - "8082:9090"
+    networks:
+     - polis   
+    entrypoint: ["python", "/opt/kaldi-gstreamer-server/kaldigstserver/master_server.py", "--port=9090"]
+
+  worker:
+    image: airenas/docker-kaldi-gstreamer-server:${gstreamer_version}
+    # container_name: worker
+    logging: *default-logging
+    restart: unless-stopped
+    entrypoint: ["python", "/opt/kaldi-gstreamer-server/kaldigstserver/worker.py", "-c", "/opt/models/lt.yaml", "-u", "ws://manager:9090/worker/ws/speech"]
+    environment:
+     - GST_PLUGIN_PATH=/opt/gst-kaldi-nnet2-online/src/:/opt/kaldi/src/gst-plugin/
+     - PHONES2WORD_SERVER_URL=http://phones2word:3000/phones2word
+    networks:
+     - polis    
+    volumes:
+     - ${ASR_DIR}:/opt/models:ro  
+
+  wrapper:
+    image: airenas/rt-transcriber-wrapper:${wrapper_version}
+    container_name: rt-wrapper
+    logging: *default-logging
+    restart: unless-stopped
+    networks:
+     - polis   
+    environment:
+     - STATUS_URL=ws://manager:9090/client/ws/status
+     - SPEECH_URL=ws://manager:9090/client/ws/speech  
+     - JOINER_URL=http://norm-num:3000/invnorm_num
+     - PUNCTUATOR_URL=http://punctuation-service:8000/punctuation   
+     - REDIS_URL=redis://redis-cache:6379/0
+     - REDIS_ENCRYPTIONKEY=${CACHE_ENCRYPTION_KEY}
+     - REDIS_TTL=6h
+    #  - REDIS_TTL=10m
+    labels:
+     - "traefik.enable=true"
+     - "traefik.http.routers.kaldi-proxy.rule=PathPrefix(`/{path:(?i)client/}`)"
+     - "traefik.http.routers.kaldi-proxy.middlewares=rate-limit@file,authware@docker"
+     - "traefik.http.routers.kaldi-proxy.entrypoints=web,websecure"
+     - "traefik.http.routers.kaldi-proxy.tls=true"
+     - "traefik.http.services.kaldi-proxy.loadbalancer.server.port=8000"  
+
+  redis-cache:
+    container_name: redis-cache
+    image: redis:7.2.5-alpine3.19
+    restart: unless-stopped
+    logging: *default-logging   
+    ports:
+      - "6379:6379"
+    networks:
+     - polis   
+    
+  tensorflow:
+    image: tensorflow/serving:1.15.0
+    environment:
+      MODEL_NAME: punctuation
+      MODEL_BASE_PATH: /models
+    volumes:  
+      - ${PUNCTUATION_DIR}/models:/models
+    restart: unless-stopped 
+    networks:
+     - polis   
+    logging: *default-logging
+
+  authware:
+    image: airenas/authware:${authware_version}
+    container_name: authware
+    environment:
+      - RUST_LOG=debug,tower_http=warn,h2=warn,rustls=warn,hyper_util=warn 
+      - SESSION_TIMEOUT=6h
+      # - INACTIVITY_TIMEOUT=30m
+      - INACTIVITY_TIMEOUT=3m
+      - SAMPLE_USERS=${SAMPLE_USERS}
+      - HOST=authware
+      - REDIS_URL=redis://redis:6379
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - AUTH_WS_URL=${AUTH_WS_URL}
+      - AUTH_WS_USER=${AUTH_WS_USER}
+      - AUTH_WS_PASS=${AUTH_WS_PASS}
+      - AUTH_APP_CODE=${AUTH_WS_APP_CODE}
+    restart: unless-stopped 
+    networks:
+     - polis
+    logging: *default-logging  
+    labels:
+     - "traefik.enable=true"
+     - "traefik.http.routers.authware.rule=PathPrefix(`/auth`)"
+     - "traefik.http.routers.authware.entrypoints=websecure"
+     - "traefik.http.routers.authware.tls=true"
+     - "traefik.http.middlewares.authware.forwardauth.address=https://authware:8000/auth"  
+     - "traefik.http.middlewares.authware.forwardauth.trustForwardHeader=true"
+     - "traefik.http.middlewares.authware.forwardauth.tls.insecureSkipVerify=true"
+     - "traefik.http.middlewares.authware.forwardauth.authResponseHeaders=User-Info"
+     - "traefik.http.services.authware.loadbalancer.server.port=8000"
+     - "traefik.http.services.authware.loadbalancer.server.scheme=https"
+     - "traefik.http.services.authware.loadbalancer.serversTransport=skip-verify-tls-transport@file"
+
+  redis:
+    container_name: redis
+    image: redis:7.2.5-alpine3.19
+    restart: unless-stopped
+    logging: *default-logging   
+    networks:
+     - polis
+      
+  punctuation-service:
+    image: airenas/list-punctuation:0.3.1
+    restart: unless-stopped
+    logging: *default-logging
+    volumes:
+      - ${PUNCTUATION_DIR}/3.0:/model
+    environment:
+      TF_URL: tensorflow:8500 
+    networks:
+     - polis     
+    ports:
+      - "8083:8000" 
+
+  norm-num:
+    image: intelektikalt/invnorm-nums:${nnum_version}
+    container_name: norm-num
+    logging: *default-logging
+    restart: unless-stopped
+    networks:
+     - polis   
+    ports:
+      - "8081:3000" 
+
+  phones2word:
+    image: intelektikalt/asr-phoneme2word:0.0.1
+    container_name: phones2word
+    logging: *default-logging
+    restart: unless-stopped  
+    networks:
+     - polis   
+
+  polis-gui:
+    image: airenas/polis-gui:${polis_gui_version}
+    container_name: polis-gui
+    logging: *default-logging
+    restart: unless-stopped
+    networks:
+     - polis   
+    environment:
+      - BASE_PATH=/${POLIS_PATH}/
+      - SERVER_URL=${KALDI_WS}
+      - DATA_SERVER_URL=${DATA_SERVER_URL}
+      - AUTH_URL=${AUTH_URL}
+    labels:
+     - "traefik.enable=true"
+     - "traefik.http.routers.polis.rule=PathPrefix(`/${POLIS_PATH}`)"
+     - "traefik.http.routers.polis.middlewares=rate-limit@file,polis"
+     - "traefik.http.middlewares.polis.stripprefix.prefixes=/${POLIS_PATH}"
+     - "traefik.http.routers.polis.entrypoints=web,websecure"
+     - "traefik.http.routers.polis.tls=true"
+     - "traefik.http.routers.polis.service=polis"
+     - "traefik.http.services.polis.loadbalancer.server.port=8000"     
+
+networks:
+  polis:
