@@ -9,7 +9,7 @@ services:
 
   proxy:
     container_name: proxy
-    image: traefik:2.11.9 
+    image: traefik:2.11 
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
@@ -59,13 +59,24 @@ services:
      - SPEECH_URL=ws://manager:9090/client/ws/speech  
      - JOINER_URL=http://norm-num:3000/invnorm_num
      - PUNCTUATOR_URL=http://punctuation-service:8000/punctuation   
+     - REDIS_URL=redis://redis-cache:6379/0
+     - REDIS_ENCRYPTIONKEY=${CACHE_ENCRYPTION_KEY}
+     - REDIS_TTL=6h
     labels:
      - "traefik.enable=true"
-     - "traefik.http.routers.kaldi-proxy.rule=PathPrefix(`/{path:(?i)client/ws}`)"
+     - "traefik.http.routers.kaldi-proxy.rule=PathPrefix(`/{path:(?i)client/}`)"
      - "traefik.http.routers.kaldi-proxy.middlewares=rate-limit@file,authware@docker"
      - "traefik.http.routers.kaldi-proxy.entrypoints=web,websecure"
      - "traefik.http.routers.kaldi-proxy.tls=true"
      - "traefik.http.services.kaldi-proxy.loadbalancer.server.port=8000"  
+
+  redis-cache:
+    container_name: redis-cache
+    image: redis:7.2.5-alpine3.19
+    restart: unless-stopped
+    logging: *default-logging   
+    networks:
+     - polis   
     
   tensorflow:
     image: tensorflow/serving:1.15.0
@@ -106,6 +117,7 @@ services:
      - "traefik.http.middlewares.authware.forwardauth.address=https://authware:8000/auth"  
      - "traefik.http.middlewares.authware.forwardauth.trustForwardHeader=true"
      - "traefik.http.middlewares.authware.forwardauth.tls.insecureSkipVerify=true"
+     - "traefik.http.middlewares.authware.forwardauth.authResponseHeaders=User-Info"
      - "traefik.http.services.authware.loadbalancer.server.port=8000"
      - "traefik.http.services.authware.loadbalancer.server.scheme=https"
      - "traefik.http.services.authware.loadbalancer.serversTransport=skip-verify-tls-transport@file"
@@ -128,7 +140,7 @@ services:
       TF_URL: tensorflow:8500 
     networks:
      - polis     
-    
+
   norm-num:
     image: intelektikalt/invnorm-nums:${nnum_version}
     container_name: norm-num
@@ -155,6 +167,7 @@ services:
     environment:
       - BASE_PATH=/${POLIS_PATH}/
       - SERVER_URL=${KALDI_WS}
+      - DATA_SERVER_URL=${DATA_SERVER_URL}
       - AUTH_URL=${AUTH_URL}
     labels:
      - "traefik.enable=true"
