@@ -6,17 +6,17 @@
       rule = "HostRegexp(`{host:.+}`)"
       service = "noop"
     
-    [http.routers.default-redirect-polis]
+    [http.routers.default-redirect-rt-transcriber]
       entryPoints = ["websecure"]
       rule = "Host(`${host}`) && Path(`/`)"
-      middlewares = ["default-redirect-polis"]
+      middlewares = ["default-redirect-rt-transcriber"]
       tls = true
       service = "noop"  
 
-    [http.routers.polis-redirect]
+    [http.routers.rt-transcriber-redirect]
       entryPoints = ["websecure"]
-      middlewares = ["default-redirect-polis"]
-      rule = "Path(`/${polis_path}`)"
+      middlewares = ["default-redirect-rt-transcriber"]
+      rule = "Path(`/${rt_transcriber_path}`)"
       tls = true
       service = "noop"     
 
@@ -31,9 +31,9 @@
     [http.middlewares.https-redirect.redirectScheme]
       scheme = "https"
 
-    [http.middlewares.default-redirect-polis.redirectregex]
+    [http.middlewares.default-redirect-rt-transcriber.redirectregex]
       regex = ".*"
-      replacement="/${polis_path}/"    
+      replacement="/${rt_transcriber_path}/"    
  
 
     [http.middlewares.rate-limit.rateLimit]

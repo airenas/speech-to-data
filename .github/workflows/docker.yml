@@ -24,7 +24,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/polis-gui
+            ${{ secrets.DOCKERHUB_USERNAME }}/rt-transcriber-gui
           tags: |
             type=ref,event=branch
             type=ref,event=pr

@@ -6,11 +6,11 @@
 sequenceDiagram
     participant user as Browser
     participant waf
-    box blue pd-di-identify
+    box blue app-vm
     participant auth_proxy
 %%    participant redis
     end
-    participant auth as VRM admin3ws
+    participant auth as External auth
     
     user->>waf: connect (user,pass)
     waf->>auth_proxy: 
@@ -32,7 +32,7 @@ sequenceDiagram
 sequenceDiagram
     participant user as Browser
     participant waf
-    box blue pd-di-identify
+    box blue app-vm
     participant auth_proxy
 %%    participant redis
     participant asr

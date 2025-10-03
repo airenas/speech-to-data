@@ -12,7 +12,7 @@ auth_ws_pass=
 auth_ws_app_code=
 
 ### static
-polis_path=polis
+rt_transcriber_path=rt-transcriber
 traefik_debug_level=INFO
 punctuation_dir=$(CURDIR)/data/models/punctuation
 asr_dir=$(CURDIR)/data/models/asr/v4

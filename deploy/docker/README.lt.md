@@ -85,11 +85,11 @@ Ar domenas sukonfigūruotas teisingai. Patikriname iš kitos mašinos:
 
     | Parametras          | Priva-lomas | Paskirtis                                                                                             | Pvz                                               |
     | ------------------- | ----------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-    | *host*              | +           | Domenas, kuriuo bus pasiekiama roboto Web sąsaja                                                      | polis.policija.lt                                 |
-    | *letsencrypt_email* | +           | El. paštas sertifikato suteikimui                                                                     | admin@policija.lt                                 |
+    | *host*              | +           | Domenas, kuriuo bus pasiekiama roboto Web sąsaja                                                      | rt-transcriber.my-domain.com                                 |
+    | *letsencrypt_email* | +           | El. paštas sertifikato suteikimui                                                                     | admin@my-domain.com                                |
     | *worker_count*      | +           | Darbo vietų skaičius, priklausdo nuo RAM                                                              | 3                                                 |
     | *share_pass*        | +           | Modelių parsisiuntimo slaptažodis (pateiks VDU)                                                       | xxx123                                            |
-    | *sample_users*      | +           | LAIKINAI (kol bus pajungtas admin3ws) Vartotojo sąsajos slaptažodis                                   | admn:passsss23                                    |
+    | *sample_users*      | +           | LAIKINAI (kol bus pajungtas external auth) Vartotojo sąsajos slaptažodis                                   | admn:passsss23                                    |
     | *encryption_key*    | +           | Sesijos užkodavimo raktas                                                                             | sugeneruokite ilgesnį kaip 16 simbolių slaptažodį |
     | *waf_ip*            | +           | WAF IP adresas, iš kurio traefik priima `X-Forwareded-For` antraštę. Naudojamas kliento IP nustatymui |                                                   |
     | *auth_ws_url*       | +           | Autorizacijos serverio url                                                                            |                                                   |
@@ -114,7 +114,7 @@ Slaptažodį pateiks VDU
 
 1. Patikrinkite ar visi servisai veikia su *docker compose*: `docker compose ps`. Visi servisai turi būti *Up* būsenoje.
 
-1. Atidarykite URL naršyklėje: *<host/polis/*. Turi atsidaryti realaus laiko transkripcijos puslapis.
+1. Atidarykite URL naršyklėje: *<host/rt-transcriber/*. Turi atsidaryti realaus laiko transkripcijos puslapis.
 
 ## Servisų sustabdymas/valdymas
 

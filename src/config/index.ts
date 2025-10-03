@@ -2,7 +2,7 @@ import isMobile from '@/utils/is-mobile';
 
 import type { Notifications } from './types';
 
-const title = 'Polis Audio Transkribatorius';
+const title = 'Audio Transkribatorius';
 
 const email = 'airenass@gmail.com';
 

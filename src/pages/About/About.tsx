@@ -10,7 +10,7 @@ function About() {
       <Meta title="apie" />
       <FullSizeCenteredFlexBox>
         <div>
-          <Typography variant="h2">DiPolis Audio Transkribatorius</Typography>
+          <Typography variant="h2">Realaus laiko Audio Transkribatorius</Typography>
           <Typography variant="body1">Sukurta: VDU</Typography>
           <Typography variant="body1">Versija: {VERSION}</Typography>
         </div>

@@ -21,7 +21,7 @@ services:
       - "443:443"
       - "8080:8080"
     networks:
-     - polis   
+     - rt-transcriber   
     restart: unless-stopped
 
   manager:
@@ -32,7 +32,7 @@ services:
     ports:
       - "8082:9090"
     networks:
-     - polis   
+     - rt-transcriber   
     entrypoint: ["python", "/opt/kaldi-gstreamer-server/kaldigstserver/master_server.py", "--port=9090"]
 
   worker:
@@ -45,7 +45,7 @@ services:
      - GST_PLUGIN_PATH=/opt/gst-kaldi-nnet2-online/src/:/opt/kaldi/src/gst-plugin/
      - PHONES2WORD_SERVER_URL=http://phones2word:3000/phones2word
     networks:
-     - polis    
+     - rt-transcriber    
     volumes:
      - ${ASR_DIR}:/opt/models:ro  
 
@@ -55,7 +55,7 @@ services:
     logging: *default-logging
     restart: unless-stopped
     networks:
-     - polis   
+     - rt-transcriber   
     environment:
      - STATUS_URL=ws://manager:9090/client/ws/status
      - SPEECH_URL=ws://manager:9090/client/ws/speech  
@@ -81,7 +81,7 @@ services:
     ports:
       - "6379:6379"
     networks:
-     - polis   
+     - rt-transcriber   
     
   tensorflow:
     image: tensorflow/serving:1.15.0
@@ -92,7 +92,7 @@ services:
       - ${PUNCTUATION_DIR}/models:/models
     restart: unless-stopped 
     networks:
-     - polis   
+     - rt-transcriber   
     logging: *default-logging
 
   authware:
@@ -113,7 +113,7 @@ services:
       - AUTH_APP_CODE=${AUTH_WS_APP_CODE}
     restart: unless-stopped 
     networks:
-     - polis
+     - rt-transcriber
     logging: *default-logging  
     labels:
      - "traefik.enable=true"
@@ -134,7 +134,7 @@ services:
     restart: unless-stopped
     logging: *default-logging   
     networks:
-     - polis
+     - rt-transcriber
       
   punctuation-service:
     image: airenas/list-punctuation:0.3.1
@@ -145,7 +145,7 @@ services:
     environment:
       TF_URL: tensorflow:8500 
     networks:
-     - polis     
+     - rt-transcriber     
     ports:
       - "8083:8000" 
 
@@ -155,7 +155,7 @@ services:
     logging: *default-logging
     restart: unless-stopped
     networks:
-     - polis   
+     - rt-transcriber   
     ports:
       - "8081:3000" 
 
@@ -165,29 +165,29 @@ services:
     logging: *default-logging
     restart: unless-stopped  
     networks:
-     - polis   
+     - rt-transcriber   
 
-  polis-gui:
-    image: airenas/polis-gui:${polis_gui_version}
-    container_name: polis-gui
+  rt-transcriber-gui:
+    image: airenas/rt_transcriber-gui:${rt_transcriber_gui_version}
+    container_name: rt-transcriber-gui
     logging: *default-logging
     restart: unless-stopped
     networks:
-     - polis   
+     - rt-transcriber   
     environment:
-      - BASE_PATH=/${POLIS_PATH}/
+      - BASE_PATH=/${RT_TRANSCRIBER_PATH}/
       - SERVER_URL=${KALDI_WS}
       - DATA_SERVER_URL=${DATA_SERVER_URL}
       - AUTH_URL=${AUTH_URL}
     labels:
      - "traefik.enable=true"
-     - "traefik.http.routers.polis.rule=PathPrefix(`/${POLIS_PATH}`)"
-     - "traefik.http.routers.polis.middlewares=rate-limit@file,polis"
-     - "traefik.http.middlewares.polis.stripprefix.prefixes=/${POLIS_PATH}"
-     - "traefik.http.routers.polis.entrypoints=web,websecure"
-     - "traefik.http.routers.polis.tls=true"
-     - "traefik.http.routers.polis.service=polis"
-     - "traefik.http.services.polis.loadbalancer.server.port=8000"     
+     - "traefik.http.routers.rt-transcriber.rule=PathPrefix(`/${RT_TRANSCRIBER_PATH}`)"
+     - "traefik.http.routers.rt-transcriber.middlewares=rate-limit@file,rt-transcriber"
+     - "traefik.http.middlewares.rt-transcriber.stripprefix.prefixes=/${RT_TRANSCRIBER_PATH}"
+     - "traefik.http.routers.rt-transcriber.entrypoints=web,websecure"
+     - "traefik.http.routers.rt-transcriber.tls=true"
+     - "traefik.http.routers.rt-transcriber.service=rt-transcriber"
+     - "traefik.http.services.rt-transcriber.loadbalancer.server.port=8000"     
 
 networks:
-  polis:
+  rt-transcriber:

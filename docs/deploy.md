@@ -4,12 +4,12 @@
 
 ```mermaid
 graph LR
-    subgraph policija.lt
+    subgraph my-domain.com 
         user1[user1]
         user2[user2]
         waf[WAF]
-        auth[admin3ws]
-        subgraph pd-di-identify
+        auth[external auth]
+        subgraph app-vm
             auth_proxy[auth_proxy]
 %%            redis[redis]
             rtasr[asr]
@@ -27,11 +27,11 @@ graph LR
 
 ```mermaid
 graph LR
-    subgraph policija.lt
+    subgraph my-domain.com 
         user[user]
         waf[WAF]
-        auth[admin3ws]
-        subgraph pd-di-identify
+        auth[external auth]
+        subgraph app-vm
             redis[redis]
             subgraph docker
              traefik[traefik proxy]

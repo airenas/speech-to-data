@@ -22,7 +22,7 @@ _redeploy/%:
 redeploy/manager: _redeploy/manager
 redeploy/punctuation: _redeploy/punctuation
 redeploy/tensorflow: _redeploy/tensorflow
-redeploy/gui: _redeploy/polis-gui
+redeploy/gui: _redeploy/rt-transcriber-gui
 redeploy/norm-num: _redeploy/norm-num
 redeploy/phones2word: _redeploy/phones2word
 redeploy/wrapper: _redeploy/wrapper
