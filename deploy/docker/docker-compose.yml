@@ -173,7 +173,7 @@ services:
      - "traefik.enable=true"
      - "traefik.http.routers.rt-transcriber.rule=PathPrefix(`/${RT_TRANSCRIBER_PATH}`)"
      - "traefik.http.routers.rt-transcriber.middlewares=rate-limit@file,rt-transcriber"
-     - "traefik.http.middlewares.rt-transcriber.stripprefix.prefixes=/${_PATH}"
+     - "traefik.http.middlewares.rt-transcriber.stripprefix.prefixes=/${RT_TRANSCRIBER_PATH}"
      - "traefik.http.routers.rt-transcriber.entrypoints=web,websecure"
      - "traefik.http.routers.rt-transcriber.tls=true"
      - "traefik.http.routers.rt-transcriber.service=rt-transcriber"
