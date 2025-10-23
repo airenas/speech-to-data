@@ -49,3 +49,11 @@
 
 [http.serversTransports.skip-verify-tls-transport]
   insecureSkipVerify = true
+
+################################################################
+# TLS certificates
+################################################################
+[tls]
+  [[tls.certificates]]
+    certFile = "/certs/traefik.pem"
+    keyFile  = "/certs/traefik_key.pem"  

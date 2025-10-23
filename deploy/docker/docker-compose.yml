@@ -16,6 +16,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - ./traefik:/etc/traefik:ro
+      - certs-traefik:/certs:ro
     ports:
       - "80:80" 
       - "443:443"
@@ -23,6 +24,18 @@ services:
     networks:
      - rt-transcriber   
     restart: unless-stopped
+
+  authware-certs:
+    image: airenas/authware-certs:${authware_version}
+    container_name: authware-certs
+    restart: on-failure
+    environment:
+      - RUST_LOG=info 
+      - HOSTS=${HOSTS}
+      - CERT_FILE=traefik
+    logging: *default-logging  
+    volumes:
+      - certs-traefik:/certs:rw  
 
   manager:
     image: airenas/docker-kaldi-gstreamer-server:${gstreamer_version}
@@ -121,6 +134,8 @@ services:
      - "traefik.http.services.authware.loadbalancer.server.port=8000"
      - "traefik.http.services.authware.loadbalancer.server.scheme=https"
      - "traefik.http.services.authware.loadbalancer.serversTransport=skip-verify-tls-transport@file"
+    volumes:
+      - certs:/certs:rw   
 
   redis:
     container_name: redis
@@ -181,3 +196,7 @@ services:
 
 networks:
   rt-transcriber:
+
+volumes:
+  certs:
+  certs-traefik:    

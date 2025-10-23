@@ -65,14 +65,3 @@
     filename = "rules.toml"
     debugLogGeneratedTemplate = true
   
-
-################################################################
-# ACME
-################################################################
-[certificatesResolvers.le-resolver.acme]
-  email = "${letsencrypt_email}"
-  storage = "acme.json"
-  caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
-  [certificatesResolvers.le-resolver.acme.httpChallenge]
-    entryPoint = "web"
-    

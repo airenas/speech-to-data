@@ -1,15 +1,18 @@
 ### dynamic
 host=
-letsencrypt_email=
+##### hosts for traefik certificates
+hosts=
 share_pass=
 worker_count=
 sample_users=
-encryption_key=
-waf_ip=
+
 auth_ws_url=
 auth_ws_user=
 auth_ws_pass=
 auth_ws_app_code=
+
+encryption_key=
+cache_encryption_key=
 
 ### static
 rt_transcriber_path=rt-transcriber
@@ -17,5 +20,3 @@ traefik_debug_level=INFO
 punctuation_dir=$(CURDIR)/data/models/punctuation
 asr_dir=$(CURDIR)/data/models/asr/v4
 
-encryption_key=
-cache_encryption_key=
