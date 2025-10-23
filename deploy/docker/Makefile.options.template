@@ -13,9 +13,9 @@ auth_ws_app_code=
 
 encryption_key=
 cache_encryption_key=
+rt_transcriber_path=rt-transcriber
 
 ### static
-rt_transcriber_path=rt-transcriber
 traefik_debug_level=INFO
 punctuation_dir=$(CURDIR)/data/models/punctuation
 asr_dir=$(CURDIR)/data/models/asr/v4

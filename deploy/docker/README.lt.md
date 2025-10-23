@@ -85,13 +85,13 @@ Ar domenas sukonfigūruotas teisingai. Patikriname iš kitos mašinos:
 
     | Parametras          | Priva-lomas | Paskirtis                                                                                             | Pvz                                               |
     | ------------------- | ----------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-    | *host*              | +           | Domenas, kuriuo bus pasiekiama roboto Web sąsaja                                                      | rt-transcriber.my-domain.com                                 |
-    | *letsencrypt_email* | +           | El. paštas sertifikato suteikimui                                                                     | admin@my-domain.com                                |
+    | *host*              | +           | Domenas, kuriuo bus pasiekiama sąsaja                                                                 | rt-transcriber.my-domain.com                      |
+    | *hosts*              | +          | Domenų sarašas, kuriuo bus pasiekiamass traefik `proxy`                                               | localhost,my-wm-address                           |
     | *worker_count*      | +           | Darbo vietų skaičius, priklausdo nuo RAM                                                              | 3                                                 |
     | *share_pass*        | +           | Modelių parsisiuntimo slaptažodis (pateiks VDU)                                                       | xxx123                                            |
-    | *sample_users*      | +           | LAIKINAI (kol bus pajungtas external auth) Vartotojo sąsajos slaptažodis                                   | admn:passsss23                                    |
-    | *encryption_key*    | +           | Sesijos užkodavimo raktas                                                                             | sugeneruokite ilgesnį kaip 16 simbolių slaptažodį |
-    | *waf_ip*            | +           | WAF IP adresas, iš kurio traefik priima `X-Forwareded-For` antraštę. Naudojamas kliento IP nustatymui |                                                   |
+    | *sample_users*      | +           | LAIKINAI (kol bus pajungtas external auth) Vartotojo sąsajos slaptažodis                              | admn:passsss23                                    |
+    | *encryption_key*    | +           | Autentifikavimo sesijos šifravimo raktas                                                              | sugeneruokite ilgesnį kaip 32 simbolių slaptažodį |
+    | *cache_encryption_key*    | +     | Vartotojo laikinų duomenų šifravimo raktas                                                            | sugeneruokite ilgesnį kaip 32 simbolių slaptažodį |
     | *auth_ws_url*       | +           | Autorizacijos serverio url                                                                            |                                                   |
     | *auth_ws_user*      | +           | Autorizacijos serverio vartotojas                                                                     |                                                   |
     | *auth_ws_pass*      | +           | Autorizacijos serverio slaptažodis                                                                    |                                                   |
