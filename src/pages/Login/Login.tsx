@@ -1,23 +1,35 @@
 import { useState } from 'react';
 
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { IconButton, InputAdornment } from '@mui/material';
+import { CircularProgress, IconButton, InputAdornment } from '@mui/material';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 
 import { useAppContext } from '@/app-context/AppContext';
 import Meta from '@/components/Meta';
 import { FullSizeCenteredFlexBox } from '@/components/styled';
+import sleep from '@/utils/sleep';
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordTimeout, setPasswordTimeout] = useState<NodeJS.Timeout | null>(null);
   const { login } = useAppContext();
 
   const handleLogin = async () => {
-    login(username, password);
+    const pass = password;
+    try {
+      setIsLoggingIn(true);
+      setPassword('');
+      await sleep(100);
+      await login(username, pass);
+    } catch (e: unknown) {
+      console.error(e);
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   const handleKeyDown = (event: { key: string; preventDefault: () => void }) => {
@@ -75,13 +87,17 @@ function Login() {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={handleTogglePasswordVisibility}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
+                  {isLoggingIn ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleTogglePasswordVisibility}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  )}
                 </InputAdornment>
               ),
             }}
@@ -91,7 +107,7 @@ function Login() {
             color="primary"
             fullWidth
             onClick={handleLogin}
-            disabled={!canLogin()}
+            disabled={!canLogin() || isLoggingIn}
             style={{ marginTop: '16px' }}
           >
             Prisijungti
