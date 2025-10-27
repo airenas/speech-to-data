@@ -436,10 +436,12 @@ function Transcriber() {
           Skliausteliuose esantis skaičius rodo laisvas įrašymo sesijas
         </span>
       ),
+      disableBeacon: true,
     },
     {
       target: '#transcription-area',
       content: 'Diktavimo rezultatai. Juos galima redaguoti.',
+      disableBeacon: true,
     },
     {
       target: '#audio-player',
@@ -453,8 +455,9 @@ function Transcriber() {
           Perklausymas galimas tik išjungus valdymą balsu
         </span>
       ),
+      disableBeacon: true,
     },
-    { target: '#copy-button', content: 'Kopijuoja pasirinktų langelių tekstą' },
+    { target: '#copy-button', content: 'Kopijuoja pasirinktų langelių tekstą', disableBeacon: true },
     {
       target: '#auto-button',
       content: (
@@ -470,15 +473,18 @@ function Transcriber() {
           </ul>
         </span>
       ),
+      disableBeacon: true,
     },
     {
       target: '#clear-button',
       content:
         'Ištrina VISUS diktavimo rezultatus. Pakartotinai paspaudus per 5s trynimas sustabdomas',
+      disableBeacon: true,
     },
     {
       target: '#logout-button',
       content: <span>Atsijungus neištrinti įrašai išliks 6 val.</span>,
+      disableBeacon: true,
     },
   ];
 
