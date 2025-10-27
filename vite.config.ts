@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
           secure: false,
         },
         '/client/': {
-          target: 'http://localhost:8084',
+          target: 'https://localhost',
           changeOrigin: true,
           secure: false,
           ws: true,
