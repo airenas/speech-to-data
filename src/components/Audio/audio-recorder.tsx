@@ -10,6 +10,7 @@ import { TranscriberStatus } from '@/app-context/types';
 import useNotifications from '@/store/notifications';
 
 import AudioResampler from './audio-resampler';
+import { DEFAULT_AUDIO_BUFFER_SEC, getWorkletBufferSize } from './audio-streaming';
 import { KaldiRTTranscriber } from './transcriber';
 
 type AudioRecorderProps = {
@@ -127,7 +128,8 @@ const AudioRecorder = forwardRef<
         const workletNode = new AudioWorkletNode(audioContext, 'recorder-audio-processor', {
           processorOptions: {
             sampleRate: audioContext.sampleRate,
-            bufferInSec: 0.25,
+            bufferInSec: DEFAULT_AUDIO_BUFFER_SEC,
+            bufferSize: getWorkletBufferSize(audioContext.sampleRate, DEFAULT_AUDIO_BUFFER_SEC),
           },
         });
         workletNodeRef.current = workletNode;

@@ -194,9 +194,44 @@ services:
      - "traefik.http.routers.rt-transcriber.service=rt-transcriber"
      - "traefik.http.services.rt-transcriber.loadbalancer.server.port=8000"     
 
+  s3-model-sync:
+    container_name: s3-model-sync
+    image: rclone/rclone:1.73
+    volumes:
+      - onnx-model-l:/model:rw
+    environment:
+      - RCLONE_CONFIG_S3_TYPE=s3
+      - RCLONE_CONFIG_S3_PROVIDER=Other
+      - RCLONE_CONFIG_S3_ENDPOINT=${AWS_ENDPOINT_URL}
+      - RCLONE_CONFIG_S3_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - RCLONE_CONFIG_S3_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - RCLONE_CONFIG_S3_FORCE_PATH_STYLE=true
+      - RCLONE_CONFIG_S3_REGION=${AWS_REGION}
+    restart: "no"
+    logging: *default-logging
+    cpus: 2
+    mem_limit: 512mb
+    memswap_limit: 512mb
+    command: sync ${MODEL_BUCKET} /model --progress --transfers=4 --checkers=8 --delete-during --stats=1s
+
+  streaming-asr:
+    container_name: streaming-asr-l
+    image: airenas/sherpa-onnx-online-websocket-server:0.0.1
+    volumes:
+      - onnx-model-l:/model:ro
+    ports:
+      - "6006:6006"
+    command: --tokens=/model/tokens.txt --zipformer2-ctc-model=/model/ctc-epoch-10-avg-2-chunk-64-left-256.int8.onnx --num-work-threads=10
+    restart: unless-stopped
+    logging: *default-logging
+    cpus: 10
+    mem_limit: 4g
+    memswap_limit: 4g       
+
 networks:
   rt-transcriber:
 
 volumes:
   certs:
   certs-traefik:    
+  onnx-model-l:
