@@ -37,29 +37,6 @@ services:
     volumes:
       - certs-traefik:/certs:rw  
 
-  manager:
-    image: airenas/docker-kaldi-gstreamer-server:${gstreamer_version}
-    container_name: manager
-    logging: *default-logging
-    restart: unless-stopped
-    networks:
-     - rt-transcriber   
-    entrypoint: ["python", "/opt/kaldi-gstreamer-server/kaldigstserver/master_server.py", "--port=9090"]
-
-  worker:
-    image: airenas/docker-kaldi-gstreamer-server:${gstreamer_version}
-    # container_name: worker
-    logging: *default-logging
-    restart: unless-stopped
-    entrypoint: ["python", "/opt/kaldi-gstreamer-server/kaldigstserver/worker.py", "-c", "/opt/models/lt.yaml", "-u", "ws://manager:9090/worker/ws/speech"]
-    environment:
-     - GST_PLUGIN_PATH=/opt/gst-kaldi-nnet2-online/src/:/opt/kaldi/src/gst-plugin/
-     - PHONES2WORD_SERVER_URL=http://phones2word:3000/phones2word
-    networks:
-     - rt-transcriber    
-    volumes:
-     - ${ASR_DIR}:/opt/models:ro  
-
   wrapper:
     image: airenas/rt-transcriber-wrapper:${wrapper_version}
     container_name: rt-wrapper
@@ -91,18 +68,6 @@ services:
     networks:
      - rt-transcriber   
     
-  tensorflow:
-    image: tensorflow/serving:1.15.0
-    environment:
-      MODEL_NAME: punctuation
-      MODEL_BASE_PATH: /models
-    volumes:  
-      - ${PUNCTUATION_DIR}/models:/models
-    restart: unless-stopped 
-    networks:
-     - rt-transcriber   
-    logging: *default-logging
-
   authware:
     image: airenas/authware:${authware_version}
     container_name: authware
@@ -145,30 +110,13 @@ services:
     networks:
      - rt-transcriber
       
-  punctuation-service:
-    image: airenas/list-punctuation:0.3.1
-    restart: unless-stopped
-    logging: *default-logging
-    volumes:
-      - ${PUNCTUATION_DIR}/3.0:/model
-    environment:
-      TF_URL: tensorflow:8500 
-    networks:
-     - rt-transcriber     
-
   norm-num:
     image: intelektikalt/invnorm-nums:${nnum_version}
     container_name: norm-num
     logging: *default-logging
     restart: unless-stopped
-    networks:
-     - rt-transcriber   
-
-  phones2word:
-    image: intelektikalt/asr-phoneme2word:0.0.1
-    container_name: phones2word
-    logging: *default-logging
-    restart: unless-stopped  
+    ports:
+      - "6010:3000"
     networks:
      - rt-transcriber   
 
@@ -194,6 +142,7 @@ services:
      - "traefik.http.routers.rt-transcriber.service=rt-transcriber"
      - "traefik.http.services.rt-transcriber.loadbalancer.server.port=8000"     
 
+##########################################################################
   s3-model-sync:
     container_name: s3-model-sync
     image: rclone/rclone:1.73
@@ -221,13 +170,50 @@ services:
       - onnx-model-l:/model:ro
     ports:
       - "6006:6006"
-    command: --tokens=/model/tokens.txt --zipformer2-ctc-model=/model/ctc-epoch-10-avg-2-chunk-64-left-256.int8.onnx --num-work-threads=10
+    command: --tokens=/model/tokens.txt --zipformer2-ctc-model=/model/ctc-epoch-10-avg-2-chunk-64-left-256.int8.onnx --num-work-threads=10 --enable-endpoint=true --rule1-must-contain-nonsilence=true --rule1-min-trailing-silence=5 --rule2-min-trailing-silence=3 --rule3-min-utterance-length=60
     restart: unless-stopped
     logging: *default-logging
     cpus: 10
     mem_limit: 4g
     memswap_limit: 4g       
+##########################################################################
+  punctuator-model-sync:
+    container_name: punctuator-model-sync
+    image: rclone/rclone:1.73
+    volumes:
+      - punctuation-model:/model:rw
+    environment:
+      - RCLONE_CONFIG_S3_TYPE=s3
+      - RCLONE_CONFIG_S3_PROVIDER=Other
+      - RCLONE_CONFIG_S3_ENDPOINT=${AWS_ENDPOINT_URL}
+      - RCLONE_CONFIG_S3_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - RCLONE_CONFIG_S3_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - RCLONE_CONFIG_S3_FORCE_PATH_STYLE=true
+      - RCLONE_CONFIG_S3_REGION=${AWS_REGION}
+    restart: "no"
+    logging: *default-logging
+    cpus: 2
+    mem_limit: 512mb
+    memswap_limit: 512mb
+    command: sync ${PUNCTUATOR_MODEL_BUCKET} /model --progress --transfers=4 --checkers=8 --delete-during --stats=1s 
 
+  text-punctuator:
+    container_name: text-punctuator
+    image: airenas/text-punctuator:0.2.0
+    volumes:
+      - punctuation-model:/model:ro
+    ports:
+      - "6007:8000"
+    environment:
+      - ONNX_MODEL=/model/model.int8.onnx
+      - BPE_VOCAB=/model/bpe.vocab
+      - RUST_LOG=debug,hyper=warn,tower_http=warn
+    restart: unless-stopped
+    logging: *default-logging
+    cpus: 2
+    mem_limit: 1g
+    memswap_limit: 1g
+##########################################################################
 networks:
   rt-transcriber:
 
@@ -235,3 +221,4 @@ volumes:
   certs:
   certs-traefik:    
   onnx-model-l:
+  punctuation-model:

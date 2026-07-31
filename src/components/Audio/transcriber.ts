@@ -143,7 +143,7 @@ export class KaldiRTTranscriber {
               config.onStopTranscription?.(false);
             } else if (res.event === TranscriptionEvent.TRANSCRIPTION) {
               if (res.result) {
-                if (res.result.final) {
+                if (res.result.is_final) {
                   config.onResults?.(res);
                 } else {
                   config.onPartialResults?.(res);

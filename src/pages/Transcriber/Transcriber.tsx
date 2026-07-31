@@ -198,9 +198,10 @@ function Transcriber() {
     const cfg = new Config();
     cfg.onPartialResults = (data: TranscriptionResponse) => {
       // console.debug('onPartialResults', data);
-      const transcript = data.result?.hypotheses;
-      if (transcript) {
-        const text = transcript[0].transcript;
+      const result = data.result;
+      if (result) {
+        const text = result.text? result.text : '';
+        console.debug('onPartialResults text', text);
         lastTranscriptionRef.current.updatePartial(text);
       }
       lastTranscriptionRef.current.updateSegments(data['old-updates']);
@@ -209,11 +210,12 @@ function Transcriber() {
 
     cfg.onResults = (data: TranscriptionResponse) => {
       // console.debug('onResults', data);
-      const transcript = data.result?.hypotheses;
+      const result = data.result;
       // console.log('transcript', transcript);
-      if (transcript) {
-        const text = transcript[0].transcript;
-        lastTranscriptionRef.current.addSegment(text, data.segment);
+      if (result) {
+        const text = result.text? result.text : '';
+        console.debug('onResults text', text);
+        lastTranscriptionRef.current.addSegment(text, result.segment);
         lastTranscriptionRef.current.updatePartial('');
       }
       lastTranscriptionRef.current.updateSegments(data['old-updates']);

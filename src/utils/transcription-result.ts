@@ -18,7 +18,9 @@ export class TranscriptionResult {
   }
 
   addSegment(text: string, id: number) {
+    console.debug('addSegment', id, text);
     this.segments.push(new ListTranscriptionSegment(id, text, true));
+    console.debug('segments', this.segments);
   }
 
   updatePartial(text: string) {

@@ -6,14 +6,12 @@ export interface TranscriptionSegment {
 
 export interface TranscriptionResponse {
   status: number;
-  segment: number;
   event: string;
   'transcription-id'?: string;
   result?: {
     final: boolean;
-    transcript?: string;
-    hypotheses?: { transcript: string; confidence: number }[];
-    [key: string]: unknown;
+    text?: string;
+    segment: number;
   };
   'old-updates'?: TranscriptionSegment[];
   [key: string]: unknown;
