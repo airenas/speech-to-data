@@ -11,7 +11,7 @@ function About() {
       <FullSizeCenteredFlexBox>
         <div>
           <Typography variant="h2">Realaus laiko Audio Transkribatorius</Typography>
-          <Typography variant="body1">Sukurta: VDU</Typography>
+          <Typography variant="body1">Sukurta: VDU ir UAB Intelektika"</Typography>
           <Typography variant="body1">Versija: {VERSION}</Typography>
         </div>
       </FullSizeCenteredFlexBox>
